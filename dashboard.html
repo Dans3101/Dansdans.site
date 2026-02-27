@@ -2,156 +2,151 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard | Dan's Trading Bot</title>
+    <title>Dans Trading Bots - Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
-        body {
-            margin: 0;
+        body{
+            margin:0;
             font-family: Arial, sans-serif;
-            background: #0f2027;
-            color: white;
+            background:#0f172a;
+            color:white;
         }
 
-        .header {
-            padding: 20px;
-            background: #203a43;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        header{
+            background:#111827;
+            padding:15px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
         }
 
-        .container {
-            padding: 30px;
-            max-width: 900px;
-            margin: auto;
+        button{
+            padding:10px 15px;
+            border:none;
+            border-radius:6px;
+            cursor:pointer;
+            font-weight:bold;
         }
 
-        .card {
-            background: #1c2b33;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+        .primary{
+            background:#16a34a;
+            color:white;
         }
 
-        select, button {
-            padding: 10px;
-            border-radius: 5px;
-            border: none;
-            margin-top: 10px;
+        .danger{
+            background:#dc2626;
+            color:white;
         }
 
-        button {
-            cursor: pointer;
-            font-weight: bold;
+        .container{
+            padding:20px;
         }
 
-        .btn-green {
-            background: #28a745;
-            color: white;
+        .card{
+            background:#1e293b;
+            padding:20px;
+            border-radius:10px;
+            margin-bottom:20px;
         }
 
-        .btn-red {
-            background: #dc3545;
-            color: white;
-        }
-
-        .btn-blue {
-            background: #007bff;
-            color: white;
-        }
-
-        .logout {
-            background: #ff444f;
-            padding: 8px 15px;
-            border-radius: 5px;
-            text-decoration: none;
-            color: white;
-        }
-
-        .status {
-            margin-top: 10px;
-            font-weight: bold;
+        select{
+            padding:8px;
+            border-radius:6px;
         }
     </style>
 </head>
-
 <body>
 
-<div class="header">
-    <h2>Dan’s Trading Bot Dashboard</h2>
-    <a href="#" onclick="logout()" class="logout">Logout</a>
-</div>
+<header>
+    <h2>Dans Trading Bots</h2>
+    <button class="danger" onclick="logout()">Logout</button>
+</header>
 
 <div class="container">
 
     <div class="card">
         <h3>Account Information</h3>
-        <p><strong>Account ID:</strong> <span id="accountId">Loading...</span></p>
-        <p><strong>Balance:</strong> $<span id="balance">0.00</span></p>
+        <p><strong>Account ID:</strong> <span id="account_id">Loading...</span></p>
+        <p><strong>Balance:</strong> <span id="balance">Loading...</span></p>
+        <p><strong>Currency:</strong> <span id="currency">-</span></p>
+        <p><strong>Account Type:</strong> <span id="account_type">-</span></p>
 
-        <label>Switch Account Type:</label><br>
-        <select id="accountType" onchange="switchAccount()">
-            <option value="demo">Demo Account</option>
-            <option value="real">Real Account</option>
-        </select>
+        <br>
+
+        <label>Switch Account:</label>
+        <select id="account_list"></select>
+        <button class="primary" onclick="switchAccount()">Switch</button>
     </div>
 
     <div class="card">
-        <h3>Bot Controls</h3>
-        <button class="btn-green" onclick="startBot()">Start Bot</button>
-        <button class="btn-red" onclick="stopBot()">Stop Bot</button>
-
-        <div class="status" id="botStatus">
-            Bot Status: Stopped
-        </div>
+        <h3>Digit Over Bot</h3>
+        <p>Strategy: Trades Digit Over contracts automatically.</p>
+        <button class="primary" onclick="openBot()">Run Bot</button>
     </div>
 
 </div>
 
 <script>
+const token = localStorage.getItem("deriv_token");
 
-    const token = localStorage.getItem("deriv_token");
+if(!token){
+    window.location.href = "index.html";
+}
 
-    if (!token) {
-        window.location.href = "index.html";
-    }
+const ws = new WebSocket("wss://ws.derivws.com/websockets/v3?app_id=129457");
 
-    const ws = new WebSocket("wss://ws.derivws.com/websockets/v3?app_id=129457");
+ws.onopen = function(){
+    ws.send(JSON.stringify({
+        authorize: token
+    }));
+};
 
-    ws.onopen = function () {
-        ws.send(JSON.stringify({
-            authorize: token
-        }));
-    };
+ws.onmessage = function(msg){
+    const data = JSON.parse(msg.data);
 
-    ws.onmessage = function (msg) {
-        const data = JSON.parse(msg.data);
+    if(data.msg_type === "authorize"){
+        document.getElementById("account_id").innerText = data.authorize.loginid;
+        document.getElementById("balance").innerText = data.authorize.balance;
+        document.getElementById("currency").innerText = data.authorize.currency;
 
-        if (data.msg_type === "authorize") {
-            document.getElementById("accountId").innerText = data.authorize.loginid;
-            document.getElementById("balance").innerText = data.authorize.balance;
+        if(data.authorize.loginid.startsWith("CR")){
+            document.getElementById("account_type").innerText = "Demo Account";
+        } else {
+            document.getElementById("account_type").innerText = "Real Account";
         }
-    };
 
-    function switchAccount() {
-        alert("To switch between real/demo, login again with the selected account.");
+        loadAccounts(data.authorize.account_list);
     }
+};
 
-    function startBot() {
-        document.getElementById("botStatus").innerText = "Bot Status: Running";
-        // HERE you will connect your real bot logic later
-    }
+function loadAccounts(accounts){
+    const select = document.getElementById("account_list");
+    select.innerHTML = "";
 
-    function stopBot() {
-        document.getElementById("botStatus").innerText = "Bot Status: Stopped";
-    }
+    accounts.forEach(acc=>{
+        let option = document.createElement("option");
+        option.value = acc.token;
+        option.text = acc.loginid + " (" + acc.currency + ")";
+        select.appendChild(option);
+    });
+}
 
-    function logout() {
-        localStorage.removeItem("deriv_token");
-        window.location.href = "index.html";
-    }
+function switchAccount(){
+    const newToken = document.getElementById("account_list").value;
+    localStorage.setItem("deriv_token", newToken);
+    location.reload();
+}
 
+function openBot(){
+    const botUrl = "https://deriv.app/bot?import=https://Dans3101.github.io/Dansdans.site/bots/digit_over.xml";
+    window.open(botUrl, "_blank");
+}
+
+function logout(){
+    localStorage.removeItem("deriv_token");
+    window.location.href = "index.html";
+}
 </script>
 
 </body>
