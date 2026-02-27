@@ -1,1 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deriv Login Callback</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #f0f2f5;
+      margin: 0;
+      flex-direction: column;
+      text-align: center;
+    }
+    .status {
+      font-size: 18px;
+      color: #102a43;
+    }
+  </style>
+</head>
+<body>
+  <div class="status">Connecting to your Deriv account...</div>
 
+  <script>
+    // Function to get query parameters from URL
+    function getQueryParams() {
+      const params = {};
+      window.location.search.replace(/^\?/, '').split('&').forEach(pair => {
+        const [key, value] = pair.split('=');
+        if (key) params[decodeURIComponent(key)] = decodeURIComponent(value);
+      });
+      return params;
+    }
+
+    const params = getQueryParams();
+    const token = params.token1 || params.token;   // depending on your redirect
+    const acct = params.acct1 || params.acct;
+
+    if (token && acct) {
+      // Save to localStorage so main bot page can read
+      localStorage.setItem('deriv_token', token);
+      localStorage.setItem('deriv_acct', acct);
+
+      // Redirect to main bot page (index.html)
+      window.location.href = `index.html?token=${token}&acct=${acct}`;
+    } else {
+      document.querySelector('.status').innerText = 
+        'Error: No token received. Please go back and connect your Deriv account.';
+    }
+  </script>
+</body>
+</html>
