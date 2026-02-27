@@ -2,121 +2,78 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dans-Dans Trading Bots</title>
+  <title>Dans-Dans Trading Bot</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f0f2f5;
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-    nav {
-      background: #102a43;
-      color: white;
-      padding: 12px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .main {
-      flex: 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-    }
-    .card {
-      background: white;
-      padding: 30px;
-      border-radius: 12px;
-      width: 100%;
-      max-width: 450px;
-      text-align: center;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-    }
-    .btn {
-      padding: 12px 20px;
-      border-radius: 8px;
-      border: none;
-      font-weight: bold;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-block;
-    }
-    .btn-primary { background: #102a43; color: white; width: 100%; margin-top: 15px; }
-    .btn-run { background: #27ae60; color: white; width: 48%; margin-top: 10px; margin-right: 2%; }
-    .btn-stop { background: #d91e18; color: white; width: 48%; margin-top: 10px; }
-    .status { margin-top: 15px; font-size: 14px; color: #555; }
+    body { font-family: 'Segoe UI', sans-serif; background:#f0f2f5; margin:0; display:flex; flex-direction:column; min-height:100vh; }
+    nav { background:#102a43; color:white; padding:12px 20px; display:flex; justify-content:space-between; align-items:center; }
+    .main { flex:1; display:flex; justify-content:center; align-items:center; padding:20px; }
+    .card { background:white; padding:30px; border-radius:12px; width:100%; max-width:400px; text-align:center; box-shadow:0 4px 15px rgba(0,0,0,0.08); }
+    .btn { padding:12px 20px; border-radius:8px; border:none; font-weight:bold; cursor:pointer; text-decoration:none; display:inline-block; }
+    .btn-primary { background:#102a43; color:white; width:100%; margin-top:15px; }
+    .btn-run { background:#27ae60; color:white; width:48%; margin-top:10px; margin-right:2%; }
+    .btn-stop { background:#d91e18; color:white; width:48%; margin-top:10px; }
+    .status { margin-top:15px; font-size:14px; color:#555; }
   </style>
 </head>
 <body>
   <nav>
-    <div><strong>Dans-Dans Trading Bots</strong></div>
-    <a href="/" style="color:white;text-decoration:none;">Home</a>
+    <div><strong>Dans-Dans Trading Bot</strong></div>
+    <a href="index.html" style="color:white;text-decoration:none;">Logout</a>
   </nav>
 
   <div class="main">
     <div class="card" id="bot-card">
       <h2>AI Digit Strategy v3.1</h2>
       <p style="color:#666;">Connect your Deriv account to start automated trading.</p>
-      <a href="/login" class="btn btn-primary">Connect to Deriv</a>
+      <a href="#" class="btn btn-primary" id="connect-btn">Connect to Deriv</a>
     </div>
   </div>
 
   <script>
-    async function registerUser(acct, token) {
-      await fetch('/register-user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ acct, token })
-      });
-    }
+    // ==== CONFIGURATION ====
+    const APP_ID = "129457"; // Your Deriv app ID
+    const CALLBACK_URL = "https://Dans3101.github.io/Dansdans.site/callback.html";
 
-    async function loadBotUI(acct) {
-      const res = await fetch('/bot-info');
-      const bot = await res.json();
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    const acct = params.get('acct');
 
-      const card = document.getElementById('bot-card');
-      card.innerHTML = `
-        <h2>${bot.botName}</h2>
-        <p style="color:#666;">${bot.botDescription}</p>
+    const botCard = document.getElementById('bot-card');
+    const connectBtn = document.getElementById('connect-btn');
+
+    function showBotInterface(account, token) {
+      botCard.innerHTML = `
+        <h2>Connected: ${account}</h2>
         <div class="status" id="bot-status">Bot Ready 🟡</div>
-        <button class="btn btn-run" onclick="startBot('${acct}')">Run Bot</button>
-        <button class="btn btn-stop" onclick="stopBot('${acct}')">Stop Bot</button>
+        <button class="btn btn-run" onclick="startBot()">Run Bot</button>
+        <button class="btn btn-stop" onclick="stopBot()">Stop Bot</button>
       `;
     }
 
-    async function startBot(acct) {
-      const res = await fetch('/start-bot', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ acct })
-      });
-      const data = await res.json();
-      document.getElementById('bot-status').innerText = data.success ? 'Bot Running 🚀' : 'Failed to start';
+    function startBot() {
+      const status = document.getElementById('bot-status');
+      // Here you can call your backend API or XML bot logic
+      status.innerText = 'Bot Running 🚀';
+      console.log("Starting bot for token:", token);
     }
 
-    async function stopBot(acct) {
-      const res = await fetch('/stop-bot', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ acct })
-      });
-      const data = await res.json();
-      document.getElementById('bot-status').innerText = data.success ? 'Bot Stopped 🛑' : 'Failed to stop';
+    function stopBot() {
+      const status = document.getElementById('bot-status');
+      // Here you can call your backend API or XML bot logic
+      status.innerText = 'Bot Stopped 🛑';
+      console.log("Stopping bot for token:", token);
     }
 
-    // Check if user returned from Deriv OAuth
-    const urlParams = new URLSearchParams(window.location.search);
-    const acct = urlParams.get('acct');
-    const token = urlParams.get('token');
+    // ==== OAUTH LOGIN ====
+    connectBtn.addEventListener('click', () => {
+      const oauthUrl = `https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&redirect_uri=${encodeURIComponent(CALLBACK_URL)}`;
+      window.location.href = oauthUrl;
+    });
 
-    if (acct && token) {
-      // register user and show bot UI
-      registerUser(acct, token).then(() => loadBotUI(acct));
+    // ==== ON PAGE LOAD ====
+    if (token && acct) {
+      showBotInterface(acct, token);
     }
   </script>
 </body>
