@@ -1,75 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Dan's Trading Bot</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dans Trading Bots | Automated Deriv Bots</title>
 
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            text-align: center;
-        }
+<style>
+body{
+    margin:0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+    color:white;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    text-align:center;
+}
 
-        .container {
-            max-width: 400px;
-        }
+.container{
+    max-width:500px;
+    padding:40px;
+    background:rgba(255,255,255,0.05);
+    border-radius:15px;
+    backdrop-filter:blur(10px);
+    box-shadow:0 10px 40px rgba(0,0,0,0.4);
+}
 
-        h1 {
-            font-size: 28px;
-            margin-bottom: 15px;
-        }
+h1{
+    font-size:28px;
+    margin-bottom:15px;
+}
 
-        p {
-            opacity: 0.8;
-            margin-bottom: 30px;
-        }
+p{
+    font-size:15px;
+    opacity:0.9;
+    margin-bottom:30px;
+}
 
-        .btn {
-            background: #ff444f;
-            color: white;
-            padding: 15px 25px;
-            text-decoration: none;
-            border-radius: 6px;
-            font-weight: bold;
-            display: inline-block;
-            transition: 0.3s ease;
-        }
+button{
+    padding:15px 25px;
+    font-size:16px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:bold;
+    background:#00c853;
+    color:white;
+    transition:0.3s;
+}
 
-        .btn:hover {
-            background: #ff222e;
-        }
+button:hover{
+    background:#00e676;
+    transform:scale(1.05);
+}
 
-        .footer {
-            margin-top: 40px;
-            font-size: 12px;
-            opacity: 0.6;
-        }
-    </style>
+.footer{
+    position:fixed;
+    bottom:10px;
+    width:100%;
+    font-size:12px;
+    opacity:0.7;
+}
+</style>
 </head>
 
 <body>
 
 <div class="container">
-    <h1>Dan’s Trading Bot</h1>
-    <p>Smart. Automated. Profitable.</p>
+    <h1>Dans Trading Bots</h1>
+    <p>
+        Professional Automated Deriv Trading Bots.<br>
+        Trade smarter using our optimized XML strategies.
+    </p>
 
-    <a class="btn" 
-       href="https://oauth.deriv.com/oauth2/authorize?app_id=YOUR_APP_ID&redirect_uri=https://dans3101.github.io/Dansdans.site/callback.html">
-       Login with Deriv
-    </a>
-
-    <div class="footer">
-        Secure connection powered by Deriv API
-    </div>
+    <button onclick="connectDeriv()">
+        Connect to Deriv
+    </button>
 </div>
+
+<div class="footer">
+    © 2026 Dans Trading Bots — Powered by Deriv
+</div>
+
+<script>
+function connectDeriv(){
+
+    const appId = 129457;
+
+    const redirectUri = "https://dans3101.github.io/Dansdans.site/callback.html";
+
+    const oauthUrl =
+    `https://oauth.deriv.com/oauth2/authorize?app_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+
+    window.location.href = oauthUrl;
+}
+</script>
 
 </body>
 </html>
