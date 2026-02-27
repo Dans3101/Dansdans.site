@@ -29,7 +29,6 @@
         min-height: 100vh;
       }
 
-      /* Professional Navbar like Deriv Insider */
       .navbar {
         background: white;
         padding: 15px 5%;
@@ -106,7 +105,6 @@
         border-top: 1px solid #e5e7eb;
       }
 
-      /* Badge style from Deriv Insider */
       .badge {
         display: inline-block;
         background: #dbeafe;
@@ -118,9 +116,20 @@
         margin-bottom: 15px;
         text-transform: uppercase;
       }
+
+      /* Loading Overlay for the session check redirect */
+      #loader-overlay {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: white;
+        display: flex; justify-content: center; align-items: center;
+        z-index: 9999;
+      }
     </style>
   </head>
   <body>
+
+    <div id="loader-overlay"><p>Checking session...</p></div>
 
     <nav class="navbar">
       <div class="logo">Dans Trading</div>
@@ -152,6 +161,19 @@
     </footer>
 
     <script>
+      // 1. AUTO-SESSION CHECK: Run this immediately before everything else
+      (function checkSession() {
+          const existingToken = localStorage.getItem("deriv_token");
+          if (existingToken) {
+              // Token found! Skip login and go to dashboard
+              window.location.href = "dashboard.html";
+          } else {
+              // No token? Hide the loader overlay so they can see the login button
+              document.getElementById("loader-overlay").style.display = "none";
+          }
+      })();
+
+      // 2. CONNECT FUNCTION
       function connectDeriv() {
         const appId = 129457;
         const redirectUri = "https://dans3101.github.io/Dansdans.site/callback.html";
