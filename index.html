@@ -1,103 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Dans Trading Bots</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>Dan's Trading Bot</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      color: white;
-      text-align: center;
-    }
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+        }
 
-    .card {
-      background: rgba(255, 255, 255, 0.08);
-      padding: 40px;
-      border-radius: 15px;
-      width: 90%;
-      max-width: 420px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 8px 30px rgba(0,0,0,0.3);
-    }
+        .container {
+            max-width: 400px;
+        }
 
-    h1 {
-      margin-bottom: 10px;
-    }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
 
-    p {
-      opacity: 0.85;
-      margin-bottom: 25px;
-    }
+        p {
+            opacity: 0.8;
+            margin-bottom: 30px;
+        }
 
-    .btn {
-      display: block;
-      width: 100%;
-      padding: 14px;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: bold;
-      margin-top: 15px;
-      transition: 0.3s ease;
-    }
+        .btn {
+            background: #ff444f;
+            color: white;
+            padding: 15px 25px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            display: inline-block;
+            transition: 0.3s ease;
+        }
 
-    .btn-run {
-      background: #00c853;
-      color: white;
-    }
+        .btn:hover {
+            background: #ff222e;
+        }
 
-    .btn-run:hover {
-      background: #00b248;
-    }
-
-    .btn-demo {
-      background: #2962ff;
-      color: white;
-    }
-
-    .btn-demo:hover {
-      background: #1e4fd8;
-    }
-
-    .footer {
-      margin-top: 20px;
-      font-size: 13px;
-      opacity: 0.6;
-    }
-  </style>
+        .footer {
+            margin-top: 40px;
+            font-size: 12px;
+            opacity: 0.6;
+        }
+    </style>
 </head>
 
 <body>
 
-  <div class="card">
-    <h1>Dans Digit Over Bot</h1>
-    <p>Professional AI Digit Strategy for Deriv Synthetic Indices.</p>
+<div class="container">
+    <h1>Dan’s Trading Bot</h1>
+    <p>Smart. Automated. Profitable.</p>
 
-    <a id="realBtn" class="btn btn-run">Run on Real Account</a>
-    <a id="demoBtn" class="btn btn-demo">Run on Demo Account</a>
+    <a class="btn" 
+       href="https://oauth.deriv.com/oauth2/authorize?app_id=YOUR_APP_ID&redirect_uri=https://dans3101.github.io/Dansdans.site/callback.html">
+       Login with Deriv
+    </a>
 
     <div class="footer">
-      Powered by Dans Trading Bots
+        Secure connection powered by Deriv API
     </div>
-  </div>
-
-<script>
-  const APP_ID = "129457";  // YOUR DERIV APP ID
-  const XML_URL = "https://raw.githubusercontent.com/Dans3101/Dansdans.site/main/bots/digit_over.xml";
-
-  document.getElementById("realBtn").href =
-    `https://dbot.deriv.com/?app_id=${APP_ID}&xml_url=${XML_URL}`;
-
-  document.getElementById("demoBtn").href =
-    `https://dbot.deriv.com/?app_id=${APP_ID}&xml_url=${XML_URL}&account=demo`;
-</script>
+</div>
 
 </body>
 </html>
