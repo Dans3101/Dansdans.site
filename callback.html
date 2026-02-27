@@ -1,39 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Deriv OAuth Callback</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f2f5; }
-    .container { text-align: center; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-    h2 { color: #102a43; }
-    p { color: #555; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authenticating | Dans Trading Bots</title>
+    <style>
+        :root {
+            --primary-blue: #1e40af;
+            --bg-light: #f3f4f6;
+        }
+        body { 
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            background: var(--bg-light); 
+        }
+        .container { 
+            text-align: center; 
+            padding: 40px; 
+            background: white; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            max-width: 400px;
+            width: 90%;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-blue);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        h2 { color: #111827; margin: 0 0 10px; font-size: 1.5rem; }
+        p { color: #6b7280; font-size: 0.95rem; line-height: 1.5; }
+        .error-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: var(--primary-blue);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h2>Connecting to Deriv...</h2>
-    <p>Please wait while we redirect you to the bot page.</p>
-  </div>
+    <div class="container" id="status-card">
+        <div class="loader"></div>
+        <h2>Verifying Session</h2>
+        <p>Please wait while we secure your connection to the trading terminal...</p>
+    </div>
 
-  <script>
-    // Get query parameters from Deriv redirect
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get('access_token') || params.get('token1'); // depending on Deriv response
-    const acct = params.get('account') || params.get('acct1'); // account number
+    <script>
+        // Deriv sends tokens in the URL as: ?acct1=cr123&token1=a1-xyz&acct2=...
+        const params = new URLSearchParams(window.location.search);
+        
+        // We take the first account's token and ID
+        const token = params.get('token1');
+        const account = params.get('acct1');
 
-    if (token && acct) {
-      // Redirect to your main bot page with token & account in query string
-      const redirectUrl = `index.html?token=${encodeURIComponent(token)}&acct=${encodeURIComponent(acct)}`;
-      window.location.href = redirectUrl;
-    } else {
-      document.querySelector('.container').innerHTML = `
-        <h2>Connection Failed</h2>
-        <p>No token received from Deriv. Please try again.</p>
-        <a href="index.html">Go Back</a>
-      `;
-    }
-  </script>
+        if (token && account) {
+            // 1. Save to Local Storage so the Dashboard can use them
+            localStorage.setItem("deriv_token", token);
+            localStorage.setItem("deriv_account", account);
+
+            // 2. Small delay to look "pro" before redirecting to Dashboard
+            setTimeout(() => {
+                window.location.href = "dashboard.html";
+            }, 1500);
+        } else {
+            // Handle error if user cancels or login fails
+            document.getElementById('status-card').innerHTML = `
+                <h2 style="color: #ef4444;">Authentication Failed</h2>
+                <p>We couldn't retrieve your session from Deriv. This usually happens if the login was canceled.</p>
+                <a href="index.html" class="error-btn">Return to Login</a>
+            `;
+        }
+    </script>
 </body>
 </html>
