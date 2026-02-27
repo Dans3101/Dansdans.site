@@ -1,231 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dans-Dans Deriv Bot</title>
-<style>
-  body { font-family: 'Segoe UI', sans-serif; background:#f0f2f5; margin:0; display:flex; flex-direction:column; min-height:100vh; }
-  nav { background:#102a43; color:white; padding:12px 20px; display:flex; justify-content:space-between; align-items:center; }
-  .main { flex:1; display:flex; justify-content:center; align-items:center; padding:20px; }
-  .card { background:white; padding:30px; border-radius:12px; width:100%; max-width:400px; text-align:center; box-shadow:0 4px 15px rgba(0,0,0,0.08); }
-  .btn { padding:12px 20px; border-radius:8px; border:none; font-weight:bold; cursor:pointer; text-decoration:none; display:inline-block; }
-  .btn-primary { background:#102a43; color:white; width:100%; margin-top:15px; }
-  .btn-run { background:#27ae60; color:white; width:48%; margin-top:10px; margin-right:2%; }
-  .btn-stop { background:#d91e18; color:white; width:48%; margin-top:10px; }
-  .status { margin-top:15px; font-size:14px; color:#555; }
-  select { padding:8px; margin-top:10px; width:100%; border-radius:6px; border:1px solid #ccc; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dans-Dans Trading Bots</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    nav {
+      background: #102a43;
+      color: white;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .main {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 450px;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+    .btn {
+      padding: 12px 20px;
+      border-radius: 8px;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-primary { background: #102a43; color: white; width: 100%; margin-top: 15px; }
+    .btn-run { background: #27ae60; color: white; width: 48%; margin-top: 10px; margin-right: 2%; }
+    .btn-stop { background: #d91e18; color: white; width: 48%; margin-top: 10px; }
+    .status { margin-top: 15px; font-size: 14px; color: #555; }
+  </style>
 </head>
 <body>
+  <nav>
+    <div><strong>Dans-Dans Trading Bots</strong></div>
+    <a href="/" style="color:white;text-decoration:none;">Home</a>
+  </nav>
 
-<nav>
-  <div><strong>Dans-Dans Deriv Bot</strong></div>
-</nav>
-
-<div class="main">
-  <div class="card" id="bot-card">
-    <h2>AI Digit Strategy v3.1</h2>
-    <p style="color:#666;">Connect your Deriv account to start automated trading.</p>
-    <a href="#" id="connect-deriv" class="btn btn-primary">Connect to Deriv</a>
+  <div class="main">
+    <div class="card" id="bot-card">
+      <h2>AI Digit Strategy v3.1</h2>
+      <p style="color:#666;">Connect your Deriv account to start automated trading.</p>
+      <a href="/login" class="btn btn-primary">Connect to Deriv</a>
+    </div>
   </div>
-</div>
 
-<script>
-const APP_ID = "129457"; // Your Deriv App ID
-const BASE_URL = window.location.origin;
-const REDIRECT_URI = `${BASE_URL}/callback.html`;
+  <script>
+    async function registerUser(acct, token) {
+      await fetch('/register-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ acct, token })
+      });
+    }
 
-// List of available bots
-const bots = [
-  { name: "Digit Over Bot", file: "bots/digit_over.xml" }
-];
+    async function loadBotUI(acct) {
+      const res = await fetch('/bot-info');
+      const bot = await res.json();
 
-// Save current bot state
-let currentBot = null;
-let botRunning = false;
+      const card = document.getElementById('bot-card');
+      card.innerHTML = `
+        <h2>${bot.botName}</h2>
+        <p style="color:#666;">${bot.botDescription}</p>
+        <div class="status" id="bot-status">Bot Ready 🟡</div>
+        <button class="btn btn-run" onclick="startBot('${acct}')">Run Bot</button>
+        <button class="btn btn-stop" onclick="stopBot('${acct}')">Stop Bot</button>
+      `;
+    }
 
-// Open Deriv OAuth
-document.getElementById('connect-deriv').onclick = () => {
-  const url = `https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
-  window.location.href = url;
-};
+    async function startBot(acct) {
+      const res = await fetch('/start-bot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ acct })
+      });
+      const data = await res.json();
+      document.getElementById('bot-status').innerText = data.success ? 'Bot Running 🚀' : 'Failed to start';
+    }
 
-// Load XML Bot file
-async function loadBot(botFile) {
-  try {
-    const xmlPath = `${BASE_URL}/${botFile}`;
-    const res = await fetch(xmlPath);
-    const xmlContent = await res.text();
-    currentBot = xmlContent;
-    document.getElementById('bot-status').innerText = 'Bot Loaded 🟡';
-    console.log('XML Loaded:', xmlContent);
-  } catch (e) {
-    console.error('Failed to load bot XML:', e);
-    alert('Failed to load bot XML. Check console for errors.');
-  }
-}
+    async function stopBot(acct) {
+      const res = await fetch('/stop-bot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ acct })
+      });
+      const data = await res.json();
+      document.getElementById('bot-status').innerText = data.success ? 'Bot Stopped 🛑' : 'Failed to stop';
+    }
 
-// Run the bot
-function runBot() {
-  if (!currentBot) {
-    alert('No bot loaded!');
-    return;
-  }
-  botRunning = true;
-  document.getElementById('bot-status').innerText = 'Bot Running 🚀';
-  console.log('Bot started:', currentBot);
-}
+    // Check if user returned from Deriv OAuth
+    const urlParams = new URLSearchParams(window.location.search);
+    const acct = urlParams.get('acct');
+    const token = urlParams.get('token');
 
-// Stop the bot
-function stopBot() {
-  if (!botRunning) return;
-  botRunning = false;
-  document.getElementById('bot-status').innerText = 'Bot Stopped 🛑';
-  console.log('Bot stopped');
-}
-
-// After user returns from Deriv OAuth, show controls
-function initBotInterface(token, account) {
-  const card = document.getElementById('bot-card');
-  card.innerHTML = `
-    <h2>Connected: ${account}</h2>
-    <div class="status" id="bot-status">Bot Ready 🟡</div>
-    <select id="bot-select">
-      ${bots.map(b => `<option value="${b.file}">${b.name}</option>`).join('')}
-    </select>
-    <button class="btn btn-run" onclick="runBot()">Run Bot</button>
-    <button class="btn btn-stop" onclick="stopBot()">Stop Bot</button>
-  `;
-  
-  const select = document.getElementById('bot-select');
-  loadBot(select.value);
-  select.onchange = () => loadBot(select.value);
-}
-
-// Check URL for token and account after OAuth
-const params = new URLSearchParams(window.location.search);
-if (params.has('token') && params.has('acct')) {
-  const token = params.get('token');
-  const acct = params.get('acct');
-  initBotInterface(token, acct);
-}
-</script>
-
-</body>
-</html><!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dans-Dans Deriv Bot</title>
-<style>
-  body { font-family: 'Segoe UI', sans-serif; background:#f0f2f5; margin:0; display:flex; flex-direction:column; min-height:100vh; }
-  nav { background:#102a43; color:white; padding:12px 20px; display:flex; justify-content:space-between; align-items:center; }
-  .main { flex:1; display:flex; justify-content:center; align-items:center; padding:20px; }
-  .card { background:white; padding:30px; border-radius:12px; width:100%; max-width:400px; text-align:center; box-shadow:0 4px 15px rgba(0,0,0,0.08); }
-  .btn { padding:12px 20px; border-radius:8px; border:none; font-weight:bold; cursor:pointer; text-decoration:none; display:inline-block; }
-  .btn-primary { background:#102a43; color:white; width:100%; margin-top:15px; }
-  .btn-run { background:#27ae60; color:white; width:48%; margin-top:10px; margin-right:2%; }
-  .btn-stop { background:#d91e18; color:white; width:48%; margin-top:10px; }
-  .status { margin-top:15px; font-size:14px; color:#555; }
-  select { padding:8px; margin-top:10px; width:100%; border-radius:6px; border:1px solid #ccc; }
-</style>
-</head>
-<body>
-
-<nav>
-  <div><strong>Dans-Dans Deriv Bot</strong></div>
-</nav>
-
-<div class="main">
-  <div class="card" id="bot-card">
-    <h2>AI Digit Strategy v3.1</h2>
-    <p style="color:#666;">Connect your Deriv account to start automated trading.</p>
-    <a href="#" id="connect-deriv" class="btn btn-primary">Connect to Deriv</a>
-  </div>
-</div>
-
-<script>
-const APP_ID = "129457"; // Your Deriv App ID
-const BASE_URL = window.location.origin;
-const REDIRECT_URI = `${BASE_URL}/callback.html`;
-
-// List of available bots
-const bots = [
-  { name: "Digit Over Bot", file: "bots/digit_over.xml" }
-];
-
-// Save current bot state
-let currentBot = null;
-let botRunning = false;
-
-// Open Deriv OAuth
-document.getElementById('connect-deriv').onclick = () => {
-  const url = `https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
-  window.location.href = url;
-};
-
-// Load XML Bot file
-async function loadBot(botFile) {
-  try {
-    const xmlPath = `${BASE_URL}/${botFile}`;
-    const res = await fetch(xmlPath);
-    const xmlContent = await res.text();
-    currentBot = xmlContent;
-    document.getElementById('bot-status').innerText = 'Bot Loaded 🟡';
-    console.log('XML Loaded:', xmlContent);
-  } catch (e) {
-    console.error('Failed to load bot XML:', e);
-    alert('Failed to load bot XML. Check console for errors.');
-  }
-}
-
-// Run the bot
-function runBot() {
-  if (!currentBot) {
-    alert('No bot loaded!');
-    return;
-  }
-  botRunning = true;
-  document.getElementById('bot-status').innerText = 'Bot Running 🚀';
-  console.log('Bot started:', currentBot);
-}
-
-// Stop the bot
-function stopBot() {
-  if (!botRunning) return;
-  botRunning = false;
-  document.getElementById('bot-status').innerText = 'Bot Stopped 🛑';
-  console.log('Bot stopped');
-}
-
-// After user returns from Deriv OAuth, show controls
-function initBotInterface(token, account) {
-  const card = document.getElementById('bot-card');
-  card.innerHTML = `
-    <h2>Connected: ${account}</h2>
-    <div class="status" id="bot-status">Bot Ready 🟡</div>
-    <select id="bot-select">
-      ${bots.map(b => `<option value="${b.file}">${b.name}</option>`).join('')}
-    </select>
-    <button class="btn btn-run" onclick="runBot()">Run Bot</button>
-    <button class="btn btn-stop" onclick="stopBot()">Stop Bot</button>
-  `;
-  
-  const select = document.getElementById('bot-select');
-  loadBot(select.value);
-  select.onchange = () => loadBot(select.value);
-}
-
-// Check URL for token and account after OAuth
-const params = new URLSearchParams(window.location.search);
-if (params.has('token') && params.has('acct')) {
-  const token = params.get('token');
-  const acct = params.get('acct');
-  initBotInterface(token, acct);
-}
-</script>
-
+    if (acct && token) {
+      // register user and show bot UI
+      registerUser(acct, token).then(() => loadBotUI(acct));
+    }
+  </script>
 </body>
 </html>
