@@ -3,53 +3,51 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Deriv Login Callback</title>
+  <title>Dans-Dans Trading Bot - Callback</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      margin: 0;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      background: #f0f2f5;
-      margin: 0;
       flex-direction: column;
-      text-align: center;
-    }
-    .status {
-      font-size: 18px;
       color: #102a43;
     }
+    .loader {
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid #102a43;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg);}
+      100% { transform: rotate(360deg);}
+    }
+    p { font-size: 16px; color:#555; }
   </style>
 </head>
 <body>
-  <div class="status">Connecting to your Deriv account...</div>
+  <div class="loader"></div>
+  <p>Connecting to your Deriv account...</p>
 
   <script>
-    // Function to get query parameters from URL
-    function getQueryParams() {
-      const params = {};
-      window.location.search.replace(/^\?/, '').split('&').forEach(pair => {
-        const [key, value] = pair.split('=');
-        if (key) params[decodeURIComponent(key)] = decodeURIComponent(value);
-      });
-      return params;
-    }
+    // Parse URL params sent by Deriv OAuth
+    const params = new URLSearchParams(window.location.search);
+    const acct = params.get('acct1');   // Deriv account
+    const token = params.get('token1'); // OAuth token
 
-    const params = getQueryParams();
-    const token = params.token1 || params.token;   // depending on your redirect
-    const acct = params.acct1 || params.acct;
-
-    if (token && acct) {
-      // Save to localStorage so main bot page can read
-      localStorage.setItem('deriv_token', token);
-      localStorage.setItem('deriv_acct', acct);
-
-      // Redirect to main bot page (index.html)
-      window.location.href = `index.html?token=${token}&acct=${acct}`;
+    if (!acct || !token) {
+      document.querySelector('p').innerText = "Failed to connect to Deriv. Missing account or token.";
     } else {
-      document.querySelector('.status').innerText = 
-        'Error: No token received. Please go back and connect your Deriv account.';
+      // Redirect back to index.html with token and account in query string
+      const redirectUrl = `/index.html?acct=${encodeURIComponent(acct)}&token=${encodeURIComponent(token)}`;
+      window.location.href = redirectUrl;
     }
   </script>
 </body>
