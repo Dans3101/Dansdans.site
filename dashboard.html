@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard | Dan's Trading Bot</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #0f2027;
+            color: white;
+        }
+
+        .header {
+            padding: 20px;
+            background: #203a43;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .container {
+            padding: 30px;
+            max-width: 900px;
+            margin: auto;
+        }
+
+        .card {
+            background: #1c2b33;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        select, button {
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            margin-top: 10px;
+        }
+
+        button {
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-green {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-red {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-blue {
+            background: #007bff;
+            color: white;
+        }
+
+        .logout {
+            background: #ff444f;
+            padding: 8px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            color: white;
+        }
+
+        .status {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="header">
+    <h2>Dan’s Trading Bot Dashboard</h2>
+    <a href="#" onclick="logout()" class="logout">Logout</a>
+</div>
+
+<div class="container">
+
+    <div class="card">
+        <h3>Account Information</h3>
+        <p><strong>Account ID:</strong> <span id="accountId">Loading...</span></p>
+        <p><strong>Balance:</strong> $<span id="balance">0.00</span></p>
+
+        <label>Switch Account Type:</label><br>
+        <select id="accountType" onchange="switchAccount()">
+            <option value="demo">Demo Account</option>
+            <option value="real">Real Account</option>
+        </select>
+    </div>
+
+    <div class="card">
+        <h3>Bot Controls</h3>
+        <button class="btn-green" onclick="startBot()">Start Bot</button>
+        <button class="btn-red" onclick="stopBot()">Stop Bot</button>
+
+        <div class="status" id="botStatus">
+            Bot Status: Stopped
+        </div>
+    </div>
+
+</div>
+
+<script>
+
+    const token = localStorage.getItem("deriv_token");
+
+    if (!token) {
+        window.location.href = "index.html";
+    }
+
+    const ws = new WebSocket("wss://ws.derivws.com/websockets/v3?app_id=YOUR_APP_ID");
+
+    ws.onopen = function () {
+        ws.send(JSON.stringify({
+            authorize: token
+        }));
+    };
+
+    ws.onmessage = function (msg) {
+        const data = JSON.parse(msg.data);
+
+        if (data.msg_type === "authorize") {
+            document.getElementById("accountId").innerText = data.authorize.loginid;
+            document.getElementById("balance").innerText = data.authorize.balance;
+        }
+    };
+
+    function switchAccount() {
+        alert("To switch between real/demo, login again with the selected account.");
+    }
+
+    function startBot() {
+        document.getElementById("botStatus").innerText = "Bot Status: Running";
+        // HERE you will connect your real bot logic later
+    }
+
+    function stopBot() {
+        document.getElementById("botStatus").innerText = "Bot Status: Stopped";
+    }
+
+    function logout() {
+        localStorage.removeItem("deriv_token");
+        window.location.href = "index.html";
+    }
+
+</script>
+
+</body>
+</html>
