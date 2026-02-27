@@ -6,83 +6,197 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
-        body{
-            margin:0;
-            font-family: Arial, sans-serif;
-            background:#0f172a;
-            color:white;
+        :root {
+            --primary-blue: #1e40af;
+            --success-green: #00c853;
+            --danger-red: #ef4444;
+            --text-dark: #111827;
+            --bg-light: #f3f4f6;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
-        header{
-            background:#111827;
-            padding:15px;
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
         }
 
-        button{
-            padding:10px 15px;
-            border:none;
-            border-radius:6px;
-            cursor:pointer;
-            font-weight:bold;
+        /* Top Navigation */
+        header {
+            background: white;
+            padding: 12px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
-        .primary{
-            background:#16a34a;
-            color:white;
+        header h2 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: var(--primary-blue);
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        .danger{
-            background:#dc2626;
-            color:white;
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
         }
 
-        .container{
-            padding:20px;
+        .primary {
+            background: var(--primary-blue);
+            color: white;
+            width: 100%;
         }
 
-        .card{
-            background:#1e293b;
-            padding:20px;
-            border-radius:10px;
-            margin-bottom:20px;
+        .primary:hover {
+            background: #1d4ed8;
+            box-shadow: 0 4px 12px rgba(30, 64, 175, 0.2);
         }
 
-        select{
-            padding:8px;
-            border-radius:6px;
+        .danger {
+            background: transparent;
+            color: var(--danger-red);
+            border: 1px solid var(--danger-red);
+        }
+
+        .danger:hover {
+            background: var(--danger-red);
+            color: white;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        /* Grid Layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .card h3 {
+            margin-top: 0;
+            font-size: 1.1rem;
+            color: #374151;
+            border-bottom: 1px solid #f3f4f6;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 0.95rem;
+        }
+
+        .info-label { color: #6b7280; }
+        .info-value { font-weight: 700; color: var(--text-dark); }
+
+        .balance-box {
+            background: #eff6ff;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 15px 0;
+        }
+
+        #balance {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--primary-blue);
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            margin-bottom: 10px;
+            background: white;
+        }
+
+        .bot-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .container { margin: 15px auto; }
         }
     </style>
 </head>
 <body>
 
 <header>
-    <h2>Dans Trading Bots</h2>
+    <h2>Dans Trading</h2>
     <button class="danger" onclick="logout()">Logout</button>
 </header>
 
 <div class="container">
 
-    <div class="card">
-        <h3>Account Information</h3>
-        <p><strong>Account ID:</strong> <span id="account_id">Loading...</span></p>
-        <p><strong>Balance:</strong> <span id="balance">Loading...</span></p>
-        <p><strong>Currency:</strong> <span id="currency">-</span></p>
-        <p><strong>Account Type:</strong> <span id="account_type">-</span></p>
+    <div class="dashboard-grid">
+        <div class="card">
+            <h3>Account Summary</h3>
+            <div class="info-row">
+                <span class="info-label">Account ID</span>
+                <span class="info-value" id="account_id">Loading...</span>
+            </div>
+            
+            <div class="balance-box">
+                <div class="info-label" style="font-size: 0.8rem; margin-bottom: 5px;">TOTAL BALANCE</div>
+                <span id="balance">0.00</span> <span id="currency" style="font-weight: bold;">-</span>
+            </div>
 
-        <br>
+            <div class="info-row">
+                <span class="info-label">Status</span>
+                <span class="info-value" id="account_type" style="color: var(--success-green);">-</span>
+            </div>
 
-        <label>Switch Account:</label>
-        <select id="account_list"></select>
-        <button class="primary" onclick="switchAccount()">Switch</button>
-    </div>
+            <div style="margin-top: 25px;">
+                <label style="display: block; font-size: 0.8rem; color: #6b7280; margin-bottom: 8px;">SWITCH ACCOUNT</label>
+                <select id="account_list"></select>
+                <button class="primary" onclick="switchAccount()" style="padding: 8px;">Switch Now</button>
+            </div>
+        </div>
 
-    <div class="card">
-        <h3>Digit Over Bot</h3>
-        <p>Strategy: Trades Digit Over contracts automatically.</p>
-        <button class="primary" onclick="openBot()">Run Bot</button>
+        <div class="card">
+            <h3>Automated Terminals</h3>
+            <div style="text-align: center; padding: 10px 0;">
+                <span class="bot-icon">🤖</span>
+                <h4 style="margin: 5px 0;">Digit Over Bot v2.0</h4>
+                <p style="font-size: 0.85rem; color: #6b7280;">High-frequency volatility strategy. Import the XML to your Deriv terminal to start printing.</p>
+            </div>
+            
+            <button class="primary" onclick="openBot()" style="margin-top: 10px; background: var(--success-green);">
+                Launch Bot Terminal
+            </button>
+            
+            <p style="font-size: 11px; margin-top: 15px; color: #9ca3af; font-style: italic;">
+                *Note: This will open the official Deriv Bot interface with your strategy pre-loaded.
+            </p>
+        </div>
     </div>
 
 </div>
@@ -107,13 +221,15 @@ ws.onmessage = function(msg){
 
     if(data.msg_type === "authorize"){
         document.getElementById("account_id").innerText = data.authorize.loginid;
-        document.getElementById("balance").innerText = data.authorize.balance;
+        document.getElementById("balance").innerText = parseFloat(data.authorize.balance).toLocaleString();
         document.getElementById("currency").innerText = data.authorize.currency;
 
-        if(data.authorize.loginid.startsWith("CR")){
+        if(data.authorize.loginid.startsWith("VRTC")){
             document.getElementById("account_type").innerText = "Demo Account";
+            document.getElementById("account_type").style.color = "#f59e0b"; // Orange for demo
         } else {
             document.getElementById("account_type").innerText = "Real Account";
+            document.getElementById("account_type").style.color = "#16a34a"; // Green for real
         }
 
         loadAccounts(data.authorize.account_list);
@@ -128,6 +244,7 @@ function loadAccounts(accounts){
         let option = document.createElement("option");
         option.value = acc.token;
         option.text = acc.loginid + " (" + acc.currency + ")";
+        if(acc.token === token) option.selected = true;
         select.appendChild(option);
     });
 }
@@ -139,7 +256,8 @@ function switchAccount(){
 }
 
 function openBot(){
-    const botUrl = "https://deriv.app/bot?import=https://Dans3101.github.io/Dansdans.site/bots/digit_over.xml";
+    // Ensure this path matches where you actually put your XML on GitHub
+    const botUrl = "https://app.deriv.com/bot?import=https://dans3101.github.io/Dansdans.site/bots/digit_over.xml";
     window.open(botUrl, "_blank");
 }
 
