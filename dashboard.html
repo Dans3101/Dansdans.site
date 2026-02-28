@@ -125,7 +125,7 @@
 const token = localStorage.getItem("deriv_token");
 if(!token) window.location.href = "index.html";
 
-// WebSocket logic for balance...
+// WebSocket logic for balance
 const ws = new WebSocket("wss://ws.derivws.com/websockets/v3?app_id=129457");
 ws.onopen = () => ws.send(JSON.stringify({ authorize: token }));
 ws.onmessage = (msg) => {
@@ -137,19 +137,21 @@ ws.onmessage = (msg) => {
     }
 };
 
+// --- UPDATED OPEN BOT FUNCTION ---
 function openBot() {
-    // FIX: Using the newer 'bot.deriv.com' endpoint which is more stable for imports
+    // 1. Your exact XML path on GitHub
     const xmlPath = "https://dans3101.github.io/Dansdans.site/bots/digit_over.xml";
+    
+    // 2. The proper Deriv link using 'strategy' for auto-loading
     const botUrl = `https://bot.deriv.com/?strategy=${encodeURIComponent(xmlPath)}`;
     
-    document.getElementById("bot-iframe").src = botUrl;
-    document.getElementById("bot-terminal-overlay").style.display = "block";
+    // 3. Instead of using the iframe, we use a Direct Redirect.
+    // This forces Deriv to recognize and import your XML file.
+    window.location.href = botUrl;
 }
 
-function closeBot() {
-    document.getElementById("bot-terminal-overlay").style.display = "none";
-    document.getElementById("bot-iframe").src = "";
-}
+// Note: closeBot() is no longer needed with the redirect method, 
+// as users will use the browser "Back" button to return to the dashboard.
 
 function logout() {
     localStorage.clear();
