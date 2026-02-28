@@ -8,22 +8,15 @@
 <style>
 body{
 margin:0;
-font-family:Arial;
+font-family:Arial, sans-serif;
 background:#0f172a;
 color:white;
 }
 
-header{
-padding:20px;
-font-size:22px;
-font-weight:bold;
-background:#111827;
-}
-
 .container{
-padding:20px;
-max-width:600px;
+max-width:1000px;
 margin:auto;
+padding:20px;
 }
 
 .card{
@@ -33,124 +26,165 @@ border-radius:12px;
 margin-bottom:20px;
 }
 
-input,select{
+input, select{
 width:100%;
 padding:12px;
 border-radius:8px;
 border:none;
-margin-top:10px;
+margin-top:8px;
 font-size:16px;
 }
 
 button{
 width:100%;
-padding:15px;
+padding:14px;
+margin-top:12px;
 border:none;
-border-radius:10px;
+border-radius:8px;
 font-size:16px;
-margin-top:10px;
-font-weight:bold;
 cursor:pointer;
 }
 
-.start{background:#16a34a;color:white;}
-.stop{background:#dc2626;color:white;}
-.login{background:#2563eb;color:white;}
+.green{background:#16a34a;color:white;}
+.red{background:#dc2626;color:white;}
+.blue{background:#2563eb;color:white;}
 
-.status{
-margin-top:10px;
-font-size:14px;
+table{
+width:100%;
+margin-top:15px;
+border-collapse:collapse;
+}
+
+th, td{
+padding:10px;
+text-align:center;
+border-bottom:1px solid #334155;
 }
 </style>
 </head>
 
 <body>
 
-<header>DANS TERMINAL</header>
-
 <div class="container">
 
+<h2>DANS TERMINAL</h2>
+
 <div class="card">
-<button class="login" onclick="login()">Login With Deriv</button>
-<div class="status" id="accountStatus">Not Logged In</div>
+<div id="accountStatus">Not Logged In</div>
+<div>Balance: $<span id="balance">0.00</span></div>
+<div>Total Profit: $<span id="profit">0.00</span></div>
+<div id="botStatus">Bot Stopped</div>
+<button class="blue" onclick="login()">Login With Deriv</button>
 </div>
 
 <div class="card">
-<label>Stake Amount</label>
-<input type="number" id="stake" value="0.35" min="0.35" step="0.01">
-
-<label>Digit Prediction (Over)</label>
-<select id="digit">
-<option value="0">0</option>
-<option value="1">1</option>
-<option value="2">2</option>
-<option value="3">3</option>
-<option value="4">4</option>
-<option value="5">5</option>
-<option value="6">6</option>
-<option value="7">7</option>
-<option value="8">8</option>
+<label>Select Account Type</label>
+<select id="accountType">
+<option value="demo">Demo Account</option>
+<option value="real">Real Account</option>
 </select>
+
+<label>Stake Amount</label>
+<input type="number" id="stake" value="0.35" step="0.01">
+
+<label>Digit Prediction (0-9)</label>
+<input type="number" id="digit" value="5" min="0" max="9">
 </div>
 
 <div class="card">
-<div>Profit: <span id="profit">0.00</span></div>
-<button class="start" onclick="startBot()">START BOT</button>
-<button class="stop" onclick="stopBot()">STOP BOT</button>
-<div class="status" id="botStatus">Bot Stopped</div>
+<button class="green" onclick="startBot()">START BOT</button>
+<button class="red" onclick="stopBot()">STOP BOT</button>
+
+<table id="tradeTable">
+<tr>
+<th>Entry</th>
+<th>Exit</th>
+<th>Profit</th>
+</tr>
+</table>
 </div>
 
 </div>
 
 <script>
-const APP_ID = 129457; // 🔴 REPLACE WITH YOUR REAL APP ID
+const APP_ID = 129457; // 🔴 REPLACE WITH YOUR APP ID
 let ws;
-let token = null;
-let balance = 0;
-let totalProfit = 0;
-let running = false;
+let token=null;
+let running=false;
+let totalProfit=0;
 
 function login(){
-window.location.href =
-`https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&l=EN&brand=deriv`;
+let type=document.getElementById("accountType").value;
+let redirect=window.location.href.split("?")[0];
+
+window.location.href=
+`https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&l=EN&brand=deriv&account=${type}&redirect_uri=${redirect}`;
 }
 
-const params = new URLSearchParams(window.location.search);
+const params=new URLSearchParams(window.location.search);
 if(params.get("token")){
-token = params.get("token");
+token=params.get("token");
 connect();
 }
 
 function connect(){
-ws = new WebSocket(`wss://ws.derivws.com/websockets/v3?app_id=${APP_ID}`);
+ws=new WebSocket(`wss://ws.derivws.com/websockets/v3?app_id=${APP_ID}`);
 
-ws.onopen = () => {
-ws.send(JSON.stringify({
-authorize: token
-}));
+ws.onopen=()=>{
+ws.send(JSON.stringify({authorize:token}));
 };
 
-ws.onmessage = (msg) => {
-let data = JSON.parse(msg.data);
+ws.onmessage=(msg)=>{
+let data=JSON.parse(msg.data);
 
-if(data.msg_type === "authorize"){
-document.getElementById("accountStatus").innerText =
-"Logged In: " + data.authorize.loginid;
-}
+if(data.msg_type==="authorize"){
+document.getElementById("accountStatus").innerText=
+"Logged In: "+data.authorize.loginid;
 
-if(data.msg_type === "buy"){
 ws.send(JSON.stringify({
-proposal_open_contract: 1,
-contract_id: data.buy.contract_id,
-subscribe: 1
+balance:1,
+subscribe:1
 }));
 }
 
-if(data.msg_type === "proposal_open_contract"){
-if(data.proposal_open_contract.is_sold){
-let profit = parseFloat(data.proposal_open_contract.profit);
-totalProfit += profit;
-document.getElementById("profit").innerText = totalProfit.toFixed(2);
+if(data.msg_type==="balance"){
+document.getElementById("balance").innerText=
+parseFloat(data.balance.balance).toFixed(2);
+}
+
+if(data.msg_type==="proposal"){
+let stake=parseFloat(document.getElementById("stake").value);
+
+ws.send(JSON.stringify({
+buy:data.proposal.id,
+price:stake
+}));
+}
+
+if(data.msg_type==="buy"){
+ws.send(JSON.stringify({
+proposal_open_contract:1,
+contract_id:data.buy.contract_id,
+subscribe:1
+}));
+}
+
+if(data.msg_type==="proposal_open_contract"){
+let contract=data.proposal_open_contract;
+
+if(contract.is_sold){
+
+let profit=parseFloat(contract.profit);
+totalProfit+=profit;
+
+document.getElementById("profit").innerText=
+totalProfit.toFixed(2);
+
+addTradeRow(
+contract.entry_tick,
+contract.exit_tick,
+profit
+);
 
 if(running){
 trade();
@@ -165,42 +199,42 @@ if(!ws){
 alert("Login first!");
 return;
 }
-running = true;
-document.getElementById("botStatus").innerText = "Bot Running...";
+running=true;
+document.getElementById("botStatus").innerText="Bot Running...";
 trade();
 }
 
 function stopBot(){
-running = false;
-document.getElementById("botStatus").innerText = "Bot Stopped";
+running=false;
+document.getElementById("botStatus").innerText="Bot Stopped";
 }
 
 function trade(){
-let stake = parseFloat(document.getElementById("stake").value);
-let digit = document.getElementById("digit").value;
+let stake=parseFloat(document.getElementById("stake").value);
+let digit=document.getElementById("digit").value;
 
 ws.send(JSON.stringify({
-proposal: 1,
-amount: stake,
-basis: "stake",
-contract_type: "DIGITOVER",
-currency: "USD",
-duration: 1,
-duration_unit: "t",
-symbol: "R_100",
-barrier: digit
-}));
-
-ws.onmessage = (msg) => {
-let data = JSON.parse(msg.data);
-
-if(data.msg_type === "proposal"){
-ws.send(JSON.stringify({
-buy: data.proposal.id,
-price: stake
+proposal:1,
+amount:stake,
+basis:"stake",
+contract_type:"DIGITOVER",
+currency:"USD",
+duration:1,
+duration_unit:"t",
+symbol:"R_100",
+barrier:digit
 }));
 }
-};
+
+function addTradeRow(entry,exit,profit){
+let table=document.getElementById("tradeTable");
+let row=table.insertRow(1);
+
+row.insertCell(0).innerText=entry;
+row.insertCell(1).innerText=exit;
+row.insertCell(2).innerText=profit.toFixed(2);
+
+row.style.color=profit>=0?"#16a34a":"#dc2626";
 }
 </script>
 
