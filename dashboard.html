@@ -1,98 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dans Insider - Internal Bot System</title>
-<style>
-:root {
-    --primary: #1e40af;
-    --success: #10b981;
-    --bg: #f3f4f6;
-}
-body {
-    margin: 0;
-    font-family: sans-serif;
-    background: var(--bg);
-    color: #1f2937;
-}
-header {
-    background: white;
-    padding: 15px 5%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-}
-.logo { font-weight: 900; color: var(--primary); font-size: 1.2rem; }
-.container { max-width: 500px; margin: 20px auto; padding: 0 15px; }
-.bot-card {
-    background: white;
-    border-radius: 15px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    border: 1px solid #e5e7eb;
-}
-.status-dot { height:8px; width:8px; background: var(--success); border-radius:50%; display:inline-block; margin-right:5px;}
-.btn-action {
-    background: var(--primary);
-    color: white;
-    border: none;
-    width: 100%;
-    padding: 15px;
-    border-radius: 10px;
-    font-weight: bold;
-    cursor: pointer;
-    margin-top: 10px;
-}
-#loader-modal {
-    display: none;
-    position: fixed;
-    top:0; left:0; width:100%; height:100%;
-    background: rgba(0,0,0,0.8);
-    z-index: 10000;
-    justify-content: center; align-items: center;
-}
-.modal-content {
-    background: white;
-    width:90%; max-width:400px;
-    padding:25px;
-    border-radius:20px;
-    text-align:center;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DANSCOM BOTS - Internal Bot System</title>
+    <style>
+        :root {
+            --primary: #1e40af;
+            --success: #10b981;
+            --bg: #f3f4f6;
+        }
+        body { margin: 0; font-family: sans-serif; background: var(--bg); color: #1f2937; }
+        
+        /* Dashboard Header */
+        header { background: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .logo { font-weight: 900; color: var(--primary); font-size: 1.2rem; }
+
+        .container { max-width: 500px; margin: 20px auto; padding: 0 15px; }
+        
+        /* Bot Card System */
+        .bot-card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e5e7eb; }
+        .status-dot { height: 8px; width: 8px; background: var(--success); border-radius: 50%; display: inline-block; margin-right: 5px; }
+
+        .btn-action { background: var(--primary); color: white; border: none; width: 100%; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        
+        /* Internal Loading Modal */
+        #loader-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center; }
+        .modal-content { background: white; width: 90%; max-width: 400px; padding: 25px; border-radius: 20px; text-align: center; }
+    </style>
 </head>
 <body>
 
 <header>
     <div class="logo">DANS INSIDER</div>
-    <div id="balance-display" style="font-weight:bold; color: var(--primary);">Loading...</div>
+    <div id="balance-display" style="font-weight: bold; color: var(--primary);">Loading...</div>
 </header>
 
 <div class="container">
     <div class="bot-card">
-        <div style="font-size:0.8rem;color:#6b7280;margin-bottom:5px;">
-            <span class="status-dot"></span> SYSTEM READY
-        </div>
-        <h3 style="margin:0;">Digit Over Bot v2.0</h3>
-        <p style="font-size:0.85rem;color:#4b5563;">
-            Optimized for Volatility 100 (1s). High frequency digit strategy.
-        </p>
-        <button class="btn-action" onclick="showLoader()">USE STRATEGY</button>
+        <div style="font-size: 0.8rem; color: #6b7280; margin-bottom: 5px;"><span class="status-dot"></span> SYSTEM READY</div>
+        <h3 style="margin: 0;">Digit Over Bot v2.0</h3>
+        <p style="font-size: 0.85rem; color: #4b5563;">Optimized for Volatility 100 (1s). High frequency digit strategy.</p>
+        <button class="btn-action" onclick="showLoader('digit_over')">USE STRATEGY</button>
     </div>
-    <div class="bot-card" style="opacity:0.6;">
-        <h3 style="margin:0;">More Bots Coming Soon...</h3>
+
+    <div class="bot-card" style="opacity: 0.6;">
+        <h3 style="margin: 0;">More Bots Coming Soon...</h3>
     </div>
 </div>
 
 <div id="loader-modal">
     <div class="modal-content">
-        <h2 style="margin-top:0;">Internal Loader</h2>
-        <p id="loader-text" style="font-size:0.9rem;color:#4b5563;">Fetching Strategy...</p>
-        <div id="step-2" style="display:none;">
-            <div style="background:#f0fdf4;padding:15px;border-radius:10px;margin:15px 0;border:1px solid #bbf7d0;">
-                <code style="font-size:0.75rem;color:#166534;">Strategy Loaded Successfully!</code>
+        <h2 style="margin-top: 0;">Internal Loader</h2>
+        <p id="loader-text" style="font-size: 0.9rem; color: #4b5563;">Fetching XML from secure server...</p>
+        
+        <div id="step-2" style="display: none;">
+            <div style="background: #f0fdf4; padding: 15px; border-radius: 10px; margin: 15px 0; border: 1px solid #bbf7d0;">
+                <code id="xml-status" style="font-size: 0.75rem; color: #166534;">Strategy Loaded Successfully!</code>
             </div>
             <button class="btn-action" style="background: var(--success);" onclick="redirectToBot()">OPEN TERMINAL & RUN</button>
         </div>
@@ -100,39 +64,40 @@ header {
 </div>
 
 <script>
-// Check if the user is logged in
-const token = localStorage.getItem("deriv_token");
-if(!token) window.location.href = "index.html";
+    const token = localStorage.getItem("deriv_token");
+    if(!token) window.location.href = "index.html";
 
-// WebSocket to display user balance
-const ws = new WebSocket("wss://ws.derivws.com/websockets/v3?app_id=129457");
-ws.onopen = () => ws.send(JSON.stringify({authorize: token}));
-ws.onmessage = (msg) => {
-    const data = JSON.parse(msg.data);
-    if(data.msg_type==="authorize") {
-        document.getElementById("balance-display").innerText =
-            `${data.authorize.balance} ${data.authorize.currency}`;
+    // WebSocket for Balance
+    const ws = new WebSocket("wss://ws.derivws.com/websockets/v3?app_id=129457");
+    ws.onopen = () => ws.send(JSON.stringify({ authorize: token }));
+    ws.onmessage = (msg) => {
+        const data = JSON.parse(msg.data);
+        if(data.msg_type === "authorize") {
+            document.getElementById("balance-display").innerText = `${data.authorize.balance} ${data.authorize.currency}`;
+        }
+    };
+
+    let selectedBotUrl = "";
+
+    function showLoader(botId) {
+        document.getElementById("loader-modal").style.display = "flex";
+        
+        // Simulating Internal System Processing
+        setTimeout(() => {
+            document.getElementById("loader-text").innerText = "Decrypting Strategy Blocks...";
+            setTimeout(() => {
+                selectedBotUrl = `https://dans3101.github.io/Dansdans.site/bots/${botId}.xml`;
+                document.getElementById("loader-text").style.display = "none";
+                document.getElementById("step-2").style.display = "block";
+            }, 1500);
+        }, 1000);
     }
-};
 
-// ---------------------------
-// BOT LOADER USING STRATEGY ID
-// ---------------------------
-let strategyId = "YOUR_STRATEGY_ID_HERE"; // <-- Replace with actual Deriv strategy ID
-
-function showLoader(){
-    document.getElementById("loader-modal").style.display="flex";
-    setTimeout(()=>{
-        document.getElementById("loader-text").style.display="none";
-        document.getElementById("step-2").style.display="block";
-    },1000);
-}
-
-function redirectToBot(){
-    if(!strategyId) return alert("Strategy ID not set!");
-    const finalUrl = `https://bot.deriv.com/bot.html?strategyId=${strategyId}`;
-    window.location.href = finalUrl;
-}
+    function redirectToBot() {
+        // We use the direct window redirect to ensure the bot loads in the main browser thread
+        const finalUrl = `https://bot.deriv.com/?strategy=${encodeURIComponent(selectedBotUrl)}`;
+        window.location.href = finalUrl;
+    }
 </script>
 
 </body>
