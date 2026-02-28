@@ -1,102 +1,146 @@
-<!doctype html>
-<html lang="en" dir="auto">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/moneyLogo.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Dans Trading Terminal</title>
+<style>
+body {font-family:sans-serif;background:#f3f4f6;margin:0;}
+header {background:white;padding:15px;display:flex;justify-content:space-between;}
+.container {max-width:500px;margin:20px auto;}
+.card {background:white;padding:20px;border-radius:15px;margin-bottom:15px;}
+button {width:100%;padding:12px;border:none;border-radius:10px;font-weight:bold;cursor:pointer;}
+.start {background:#10b981;color:white;}
+.stop {background:#ef4444;color:white;}
+input {width:100%;padding:10px;margin-top:8px;border-radius:8px;border:1px solid #ddd;}
+</style>
+</head>
+<body>
 
-    <!-- Primary SEO -->
-    <title>Money8GG – Best AI Trading Platform & Automated Trading Bots</title>
-    <meta
-      name="title"
-      content="Money8GG – Best AI Trading Platform & Automated Trading Bots"
-    />
-    <meta
-      name="description"
-      content="Money8GG is an AI trading platform with powerful automated trading tools and step-by-step bot building guides. Import your current bot or learn how to create a profitable trading bot from scratch."
-    />
-    <meta name="robots" content="index,follow" />
+<header>
+<div><b>DANS TERMINAL</b></div>
+<div id="balance">Loading...</div>
+</header>
 
-    <!-- Open Graph / Social Sharing -->
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="Money8GG – Best AI Trading Platform" />
-    <meta
-      property="og:description"
-      content="AI-powered trading tools, bot import, and detailed bot creation guides to help you trade smarter and become consistently profitable."
-    />
-    <!-- Replace with your live URL and preview image -->
-    <!-- <meta property="og:url" content="https://your-domain.com" /> -->
-    <!-- <meta property="og:image" content="https://your-domain.com/og-image.png" /> -->
+<div class="container">
 
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Money8GG – Best AI Trading Platform" />
-    <meta
-      name="twitter:description"
-      content="Build, import, and automate trading bots with Money8GG’s AI trading tools and education."
-    />
-    <!-- <meta name="twitter:image" content="https://your-domain.com/og-image.png" /> -->
+<div class="card">
+<label>Stake Amount</label>
+<input type="number" id="stake" value="1" min="0.35" step="0.01">
+</div>
 
-    <!-- Optional: semantic hint keywords (not critical for Google but fine to include) -->
-    <meta
-      name="keywords"
-      content="Money8GG, best AI trading platform, AI trading bots, automated trading tools, algorithmic trading, trading bot builder"
-    />
+<div class="card">
+<div>Current Prediction: <b id="prediction">0</b></div>
+<div>Total Profit: <b id="profit">0.00</b></div>
+</div>
 
-    <style>
-      :root {
-        font-size: 62.5%;
-      }
-    </style>
-  <script defer src="/static/js/lib-react.1d75e542.js"></script><script defer src="/static/js/lib-router.3e6a2b08.js"></script><script defer src="/static/js/6352.79023aa2.js"></script><script defer src="/static/js/index.8c47dd88.js"></script><link href="/static/css/6352.ced10a23.css" rel="stylesheet"><link href="/static/css/index.c964f499.css" rel="stylesheet"></head>
+<div class="card">
+<button class="start" onclick="startBot()">START BOT</button>
+<button class="stop" onclick="stopBot()">STOP BOT</button>
+</div>
 
+</div>
 
-    <body class="body theme theme--light">
-        <div id="modal_root" class="modal-root"></div>
-        <div id="popup_root" class="popup-root"></div>
-        <div id="root"></div>
-        <!-- LiveChat script -->
-        <script type="text/javascript" defer>
-            window.__lc = window.__lc || {};
-            window.__lc.license = 12049137;
-            window.__lc.asyncInit = true;
-            (function (n, t, c) {
-                function i(n) {
-                    return e._h ? e._h.apply(null, n) : e._q.push(n);
-                }
-                var e = {
-                    _q: [],
-                    _h: null,
-                    _v: '2.0',
-                    on: function () {
-                        i(['on', c.call(arguments)]);
-                    },
-                    once: function () {
-                        i(['once', c.call(arguments)]);
-                    },
-                    off: function () {
-                        i(['off', c.call(arguments)]);
-                    },
-                    get: function () {
-                        if (!e._h) throw new Error('[LiveChatWidget] You can’t use getters before load.');
-                        return i(['get', c.call(arguments)]);
-                    },
-                    call: function () {
-                        i(['call', c.call(arguments)]);
-                    },
-                    init: function () {
-                        setTimeout(() => {
-                            var n = t.createElement('script');
-                            (n.async = !0),
-                                (n.type = 'text/javascript'),
-                                (n.src = 'https://cdn.livechatinc.com/tracking.js'),
-                                t.head.appendChild(n);
-                        }, 3000);
-                    },
-                };
-                !n.__lc.asyncInit && e.init(), (n.LiveChatWidget = n.LiveChatWidget || e);
-            })(window, document, [].slice);
-        </script>
-        <!-- End LiveChat script -->
-    </body>
+<script>
+const token = localStorage.getItem("deriv_token");
+if(!token) window.location.href="index.html";
+
+const app_id = 129457;
+let ws;
+let running=false;
+let totalProfit=0;
+let currentPredictionIndex=0;
+const predictionList=[0,4,5,6,7,8];
+
+function connect(){
+ws = new WebSocket(`wss://ws.derivws.com/websockets/v3?app_id=${app_id}`);
+
+ws.onopen=()=>{
+ws.send(JSON.stringify({authorize:token}));
+};
+
+ws.onmessage=(msg)=>{
+const data=JSON.parse(msg.data);
+
+if(data.msg_type==="authorize"){
+document.getElementById("balance").innerText=
+data.authorize.balance+" "+data.authorize.currency;
+}
+
+if(data.msg_type==="proposal"){
+buyContract(data.proposal.id);
+}
+
+if(data.msg_type==="buy"){
+monitorContract(data.buy.contract_id);
+}
+
+if(data.msg_type==="proposal_open_contract"){
+if(data.proposal_open_contract.is_sold){
+const profit=data.proposal_open_contract.profit;
+totalProfit+=profit;
+document.getElementById("profit").innerText=totalProfit.toFixed(2);
+
+if(profit>0){
+currentPredictionIndex=0;
+}else{
+currentPredictionIndex++;
+if(currentPredictionIndex>=predictionList.length){
+currentPredictionIndex=0;
+}
+}
+
+document.getElementById("prediction").innerText=
+predictionList[currentPredictionIndex];
+
+if(running) trade();
+}
+}
+};
+}
+
+function trade(){
+const stake=parseFloat(document.getElementById("stake").value);
+
+ws.send(JSON.stringify({
+proposal:1,
+amount:stake,
+basis:"stake",
+contract_type:"DIGITOVER",
+currency:"USD",
+duration:1,
+duration_unit:"t",
+symbol:"1HZ100V",
+barrier:predictionList[currentPredictionIndex]
+}));
+}
+
+function buyContract(id){
+ws.send(JSON.stringify({
+buy:id,
+price:parseFloat(document.getElementById("stake").value)
+}));
+}
+
+function monitorContract(id){
+ws.send(JSON.stringify({
+proposal_open_contract:1,
+contract_id:id,
+subscribe:1
+}));
+}
+
+function startBot(){
+if(!ws || ws.readyState!==1) connect();
+running=true;
+setTimeout(()=>{trade();},1000);
+}
+
+function stopBot(){
+running=false;
+}
+
+connect();
+</script>
+
+</body>
 </html>
