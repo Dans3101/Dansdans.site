@@ -1,38 +1,156 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="auto" class="light">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dans Trading Dashboard</title>
-<style>
-  :root {
-    --primary: #1e40af;
-    --success: #10b981;
-    --danger: #ef4444;
-    --bg-light: #f3f4f6;
-    --card-bg: #ffffff;
-    font-size: 16px;
-    font-family: "Segoe UI", Roboto, Helvetica, sans-serif;
-  }
-  body, html { margin:0; padding:0; height:100%; background:var(--bg-light); display:flex; flex-direction:column;}
-  header { background: var(--primary); color: white; padding: 20px; text-align:center; font-size:1.5rem; font-weight:bold;}
-  .balance { margin-top: 10px; font-size:1rem;}
-  .container { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding:20px; gap:20px;}
-  .account-select { display:flex; gap:10px; margin-bottom:20px; align-items:center; font-weight:bold;}
-  .account-select label { font-size:1rem;}
-  .bot-card { background: var(--card-bg); border-radius:20px; padding:25px; width:100%; max-width:500px; box-shadow:0 10px 20px rgba(0,0,0,0.1); text-align:center; transition: transform 0.2s;}
-  .bot-card:hover { transform: translateY(-5px);}
-  .bot-card h3 { margin:10px 0; color:var(--primary);}
-  .bot-card p { font-size:0.9rem; color:#4b5563;}
-  .btn-action { padding:15px 20px; background: var(--primary); color:white; border:none; border-radius:12px; font-weight:bold; cursor:pointer; margin-top:15px; width:100%; transition: all 0.2s;}
-  .btn-action:hover { background:#1d4ed8; transform:translateY(-2px); box-shadow:0 10px 15px rgba(30,64,175,0.3);}
-  .trades-log { max-width:700px; width:100%; margin-top:20px; background:var(--card-bg); border-radius:15px; padding:20px; box-shadow:0 10px 20px rgba(0,0,0,0.1);}
-  .trades-log h4 { margin-top:0; color:var(--primary);}
-  .trade-item { padding:10px; border-bottom:1px solid #e5e7eb; display:flex; justify-content:space-between; font-size:0.9rem;}
-  .trade-item:last-child { border-bottom:none;}
-  #loader-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center;}
-  #loader-content { background:white; padding:30px; border-radius:20px; text-align:center; width:90%; max-width:400px;}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dans Trading Dashboard</title>
+  <style>
+    :root {
+      --primary: #1e40af;
+      --success: #10b981;
+      --danger: #ef4444;
+      --bg-light: #f3f4f6;
+      --card-bg: #ffffff;
+      font-size: 16px;
+      font-family: "Segoe UI", Roboto, Helvetica, sans-serif;
+    }
+
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: var(--bg-light);
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 20px;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+
+    .balance {
+      margin-top: 10px;
+      font-size: 1rem;
+    }
+
+    .container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 20px;
+      gap: 20px;
+    }
+
+    .account-select {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      align-items: center;
+      font-weight: bold;
+    }
+
+    .account-select label {
+      font-size: 1rem;
+    }
+
+    .bot-card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 25px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      text-align: center;
+      transition: transform 0.2s ease;
+    }
+
+    .bot-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .bot-card h3 {
+      margin: 10px 0;
+      color: var(--primary);
+    }
+
+    .bot-card p {
+      font-size: 0.9rem;
+      color: #4b5563;
+    }
+
+    .btn-action {
+      padding: 15px 20px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 15px;
+      width: 100%;
+      transition: all 0.2s ease;
+    }
+
+    .btn-action:hover {
+      background: #1d4ed8;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px rgba(30, 64, 175, 0.3);
+    }
+
+    .trades-log {
+      max-width: 700px;
+      width: 100%;
+      margin-top: 20px;
+      background: var(--card-bg);
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    .trades-log h4 {
+      margin-top: 0;
+      color: var(--primary);
+    }
+
+    .trade-item {
+      padding: 10px;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+    }
+
+    .trade-item:last-child {
+      border-bottom: none;
+    }
+
+    #loader-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #loader-content {
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
+    }
+
+  </style>
 </head>
 <body>
 
@@ -73,100 +191,84 @@
 </div>
 
 <script>
-const APP_ID = 129457;
-const REDIRECT_URI = window.location.origin + window.location.pathname;
-let ws, accountBalance = 0;
-let userToken = localStorage.getItem("deriv_token");
+  const APP_ID = 129457;
+  const REDIRECT_URI = window.location.origin + window.location.pathname; // ensure matches registered app
+  const token = localStorage.getItem("deriv_token");
+  let ws, accountBalance = 0;
 
-// XML Strategy Details (from your XML)
-const predictionList = [0,4,5,6,7,8]; 
-let currentPrediction = 0;
-const SYMBOL = "1HZ100V";
-const TRADE_TYPE = "DIGITOVER";
-const DURATION = 1; // in ticks/seconds
-let STAKE = 1;
-
-// Login OAuth
-function login() {
-  const type = document.getElementById("accountType").value;
-  window.location.href = `https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&l=EN&brand=deriv&account=${type}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
-}
-
-// Handle OAuth token from URL
-const params = new URLSearchParams(window.location.search);
-const oauthToken = params.get("access_token") || params.get("token");
-if(oauthToken && !userToken){
-  localStorage.setItem("deriv_token", oauthToken);
-  location.href = REDIRECT_URI;
-}
-
-// Connect WebSocket
-userToken = localStorage.getItem("deriv_token");
-if(userToken) connectWS(userToken);
-
-function connectWS(token){
-  ws = new WebSocket("wss://ws.derivws.com/websockets/v3?app_id="+APP_ID);
-  ws.onopen = () => ws.send(JSON.stringify({ authorize: token }));
-  ws.onmessage = (msg) => {
-    const data = JSON.parse(msg.data);
-    if(data.msg_type === "authorize" && data.authorize){
-      accountBalance = parseFloat(data.authorize.balance);
-      document.getElementById("balance-display").innerText = `Balance: ${accountBalance} ${data.authorize.currency}`;
-    }
-  };
-}
-
-// Bot Execution
-function runBot() {
-  const userStakeInput = parseFloat(document.getElementById("userStake").value);
-  STAKE = isNaN(userStakeInput) ? 1 : userStakeInput;
-
-  if(!userToken){
-    alert("Please login first!");
-    return;
+  function login() {
+    const type = document.getElementById("accountType").value;
+    window.location.href = `https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&l=EN&brand=deriv&account=${type}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
   }
 
-  document.getElementById("loader-modal").style.display = "flex";
+  // Handle OAuth token from URL
+  const params = new URLSearchParams(window.location.search);
+  const oauthToken = params.get("access_token") || params.get("token");
 
-  setTimeout(()=>{
-    document.getElementById("loader-modal").style.display = "none";
+  if(oauthToken && !token){
+    localStorage.setItem("deriv_token", oauthToken);
+    location.href = REDIRECT_URI; // reload clean URL
+  }
 
-    const prediction = predictionList[currentPrediction];
-    currentPrediction = (currentPrediction + 1) % predictionList.length;
+  // Connect WebSocket if token exists
+  const userToken = localStorage.getItem("deriv_token");
+  if(userToken){
+    connectWS(userToken);
+  }
 
-    // Build trade request
-    const tradeRequest = {
-      buy: TRADE_TYPE,
-      parameters: {
-        amount: STAKE,
-        basis: "stake",
-        contract_type: "DIGITOVER",
-        currency: "USD",
-        duration: DURATION,
-        duration_unit: "t",
-        symbol: SYMBOL,
-        prediction: prediction
+  function connectWS(token){
+    ws = new WebSocket("wss://ws.derivws.com/websockets/v3?app_id="+APP_ID);
+    ws.onopen = () => {
+      ws.send(JSON.stringify({ authorize: token }));
+    };
+    ws.onmessage = (msg) => {
+      const data = JSON.parse(msg.data);
+      if(data.msg_type === "authorize" && data.authorize){
+        accountBalance = data.authorize.balance;
+        document.getElementById("balance-display").innerText = `Balance: ${accountBalance} ${data.authorize.currency}`;
       }
     };
+  }
 
-    // Send trade via WebSocket
-    ws.send(JSON.stringify({ trading: tradeRequest }));
+  // Bot logic
+  const predictionList = [0,4,5,6,7,8];
+  let currentPrediction = 0;
 
-    // For now, simulate trade result based on prediction (replace with real API response)
-    const result = Math.random() > 0.5 ? "win" : "loss";
-    accountBalance += result === "win" ? STAKE : -STAKE;
+  function runBot() {
+    const stakeInput = parseFloat(document.getElementById("userStake").value) || 1;
+    if(!userToken){
+      alert("Please login first!");
+      return;
+    }
 
-    // Update trade log
-    const log = document.getElementById("tradesList");
-    const item = document.createElement("div");
-    item.classList.add("trade-item");
-    item.innerHTML = `<span>Prediction: ${prediction}</span> <span>Stake: ${STAKE}</span> <span>Result: <strong>${result}</strong></span>`;
-    if(log.innerText === "No trades yet.") log.innerHTML = "";
-    log.prepend(item);
+    document.getElementById("loader-modal").style.display = "flex";
 
-    document.getElementById("balance-display").innerText = `Balance: ${accountBalance}`;
-  }, 1500);
-}
+    setTimeout(()=>{
+      document.getElementById("loader-modal").style.display = "none";
+
+      // Execute a simulated trade (replace with real API logic)
+      const prediction = predictionList[currentPrediction];
+      currentPrediction = (currentPrediction + 1) % predictionList.length;
+      const trade = {
+        id: Date.now(),
+        prediction,
+        stake: stakeInput,
+        result: Math.random() > 0.5 ? "win" : "loss"
+      };
+
+      // Update trades log
+      const log = document.getElementById("tradesList");
+      const item = document.createElement("div");
+      item.classList.add("trade-item");
+      item.innerHTML = `<span>Prediction: ${trade.prediction}</span> <span>Stake: ${trade.stake}</span> <span>Result: <strong>${trade.result}</strong></span>`;
+      if(log.innerText === "No trades yet.") log.innerHTML = "";
+      log.prepend(item);
+
+      // Update balance
+      accountBalance += trade.result === "win" ? trade.stake : -trade.stake;
+      document.getElementById("balance-display").innerText = `Balance: ${accountBalance}`;
+    }, 2000);
+  }
 </script>
 
 </body>
