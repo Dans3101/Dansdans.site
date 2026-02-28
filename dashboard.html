@@ -9,115 +9,124 @@
             --primary-blue: #1e40af;
             --success-green: #00c853;
             --danger-red: #ef4444;
+            --text-dark: #111827;
             --bg-light: #f3f4f6;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
         body {
             margin: 0;
-            font-family: -apple-system, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-light);
+            color: var(--text-dark);
+            overflow-x: hidden;
         }
 
-        /* Top Navigation - Photo 2 Style */
         header {
             background: white;
-            padding: 15px 5%;
+            padding: 12px 5%;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
-        .card {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            margin: 20px;
-            text-align: center;
-        }
+        header h2 { margin: 0; font-size: 1.1rem; color: var(--primary-blue); text-transform: uppercase; letter-spacing: 1px; }
 
-        /* Terminal Overlay - Fixes Photo 7 */
+        button { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+        .primary { background: var(--primary-blue); color: white; width: 100%; }
+        .danger { background: transparent; color: var(--danger-red); border: 1px solid var(--danger-red); padding: 6px 15px; font-size: 0.8rem; }
+        .danger:hover { background: var(--danger-red); color: white; }
+
+        .container { max-width: 600px; margin: 20px auto; padding: 0 15px; }
+        .card { background: white; padding: 20px; border-radius: 16px; box-shadow: var(--card-shadow); margin-bottom: 20px; }
+        
+        .balance-box { background: #eff6ff; padding: 15px; border-radius: 12px; text-align: center; margin: 15px 0; border: 1px solid #dbeafe; }
+        #balance { font-size: 2rem; font-weight: 800; color: var(--primary-blue); }
+
+        select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #d1d5db; margin-bottom: 10px; background: #fff; font-size: 1rem; }
+
+        /* --- TERMINAL OVERLAY --- */
         #bot-terminal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: white;
-            z-index: 9999;
+            display: none; 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            background: white; 
+            z-index: 9999; 
         }
 
         .terminal-header {
             background: #111827;
             color: white;
-            padding: 10px 20px;
+            padding: 10px 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             height: 60px;
-        }
-
-        .exit-btn {
-            background: var(--danger-red);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
+            box-sizing: border-box;
         }
 
         iframe {
             width: 100%;
-            height: calc(100vh - 60px);
+            height: calc(100vh - 60px); 
             border: none;
         }
 
-        .btn-launch {
-            background: var(--success-green);
-            color: white;
-            padding: 15px 30px;
-            border: none;
-            border-radius: 10px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100%;
-        }
+        .exit-btn { background: var(--danger-red); color: white; padding: 8px 12px; font-size: 0.8rem; }
     </style>
 </head>
 <body>
 
 <div id="bot-terminal-overlay">
     <div class="terminal-header">
-        <span style="font-weight: bold;">Dans Bot Terminal v2.0</span>
-        <button class="exit-btn" onclick="closeBot()">✕ EXIT TO DASHBOARD</button>
+        <span style="font-size: 0.9rem; font-weight: bold;">DANS TERMINAL v2.0</span>
+        <button class="exit-btn" onclick="closeBot()">✕ EXIT</button>
     </div>
     <iframe id="bot-iframe" src=""></iframe>
 </div>
 
 <header>
-    <h2 style="color:var(--primary-blue); margin:0;">DANS TRADING</h2>
-    <button style="color:var(--danger-red); background:none; border:1px solid; border-radius:5px; padding:5px 15px;" onclick="logout()">Logout</button>
+    <h2>Dans Trading</h2>
+    <button class="danger" onclick="logout()">Logout</button>
 </header>
 
-<div class="container" style="max-width: 500px; margin: auto;">
+<div class="container">
     <div class="card">
-        <h3 style="margin-top:0;">Account Summary</h3>
-        <div style="background:#eff6ff; padding:20px; border-radius:12px; margin:15px 0;">
-            <div style="font-size:12px; color:#6b7280;">TOTAL BALANCE</div>
-            <div style="font-size:32px; font-weight:800; color:var(--primary-blue);"><span id="balance">0.00</span> <small id="currency">USD</small></div>
+        <h3 style="margin-top:0; font-size: 1rem; color: #4b5563;">Account Summary</h3>
+        <div class="balance-box">
+            <div style="font-size: 0.7rem; color: #6b7280; font-weight: bold; letter-spacing: 1px;">TOTAL BALANCE</div>
+            <span id="balance">0.00</span> <span id="currency" style="font-weight: bold;">-</span>
         </div>
-        <div style="text-align:left; font-size:14px; color:#374151;">
-            <strong>Account ID:</strong> <span id="account_id">Loading...</span>
+        <div style="font-size: 0.85rem; color: #374151; line-height: 1.6;">
+            <strong>ID:</strong> <span id="account_id">Connecting...</span><br>
+            <strong>Status:</strong> <span id="account_type">-</span>
+        </div>
+        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #f3f4f6;">
+            <label style="font-size: 0.7rem; color: #9ca3af; display: block; margin-bottom: 5px;">SWITCH ACCOUNT</label>
+            <select id="account_list"></select>
+            <button class="primary" onclick="switchAccount()" style="padding: 8px; font-size: 0.9rem;">Switch Now</button>
         </div>
     </div>
 
-    <div class="card">
-        <div style="font-size:40px;">🤖</div>
-        <h3>Digit Over Bot v2.0</h3>
-        <p style="color:#6b7280; font-size:14px;">Optimized Volatility Strategy. Ready to run.</p>
-        <button class="btn-launch" onclick="openBot()">Launch Bot Terminal</button>
+    <div class="card" style="text-align: center;">
+        <div style="font-size: 2.5rem; margin-bottom: 10px;">🤖</div>
+        <h3 style="margin: 0; color: #111827;">Automated Terminals</h3>
+        <p style="font-size: 0.85rem; color: #6b7280; margin: 10px 0 20px 0;">Select a strategy below and launch the terminal.</p>
+        
+        <select id="bot_selector">
+            <option value="https://dans3101.github.io/Dansdans.site/bots/digit_over.xml">Digit Over Bot v2.0</option>
+            </select>
+
+        <button class="primary" onclick="openBot()" style="background: var(--success-green); padding: 15px; font-size: 1rem; box-shadow: 0 4px 14px rgba(0, 200, 83, 0.3);">
+            LAUNCH TERMINAL
+        </button>
+        <p style="font-size: 10px; color: #9ca3af; margin-top: 15px; font-style: italic;">
+            *If the bot doesn't load, use the "Import" button inside the terminal.
+        </p>
     </div>
 </div>
 
@@ -125,38 +134,67 @@
 const token = localStorage.getItem("deriv_token");
 if(!token) window.location.href = "index.html";
 
-// WebSocket logic for balance
 const ws = new WebSocket("wss://ws.derivws.com/websockets/v3?app_id=129457");
+
 ws.onopen = () => ws.send(JSON.stringify({ authorize: token }));
+
 ws.onmessage = (msg) => {
     const data = JSON.parse(msg.data);
     if(data.msg_type === "authorize"){
         document.getElementById("account_id").innerText = data.authorize.loginid;
-        document.getElementById("balance").innerText = data.authorize.balance;
+        document.getElementById("balance").innerText = parseFloat(data.authorize.balance).toLocaleString(undefined, {minimumFractionDigits: 2});
         document.getElementById("currency").innerText = data.authorize.currency;
+        
+        const typeEl = document.getElementById("account_type");
+        if(data.authorize.loginid.startsWith("VRTC")){
+            typeEl.innerText = "Demo Account";
+            typeEl.style.color = "#f59e0b";
+        } else {
+            typeEl.innerText = "Real Account";
+            typeEl.style.color = "#16a34a";
+        }
+        loadAccounts(data.authorize.account_list);
     }
 };
 
-// --- UPDATED OPEN BOT FUNCTION ---
-function openBot() {
-    // 1. Your exact XML path on GitHub
-    const xmlPath = "https://dans3101.github.io/Dansdans.site/bots/digit_over.xml";
-    
-    // 2. The proper Deriv link using 'strategy' for auto-loading
-    const botUrl = `https://bot.deriv.com/?strategy=${encodeURIComponent(xmlPath)}`;
-    
-    // 3. Instead of using the iframe, we use a Direct Redirect.
-    // This forces Deriv to recognize and import your XML file.
-    window.location.href = botUrl;
+function loadAccounts(accounts){
+    const select = document.getElementById("account_list");
+    select.innerHTML = "";
+    accounts.forEach(acc => {
+        let opt = document.createElement("option");
+        opt.value = acc.token;
+        opt.text = `${acc.loginid} (${acc.currency})`;
+        if(acc.token === token) opt.selected = true;
+        select.appendChild(opt);
+    });
 }
 
-// Note: closeBot() is no longer needed with the redirect method, 
-// as users will use the browser "Back" button to return to the dashboard.
+function switchAccount(){
+    localStorage.setItem("deriv_token", document.getElementById("account_list").value);
+    location.reload();
+}
 
-function logout() {
-    localStorage.clear();
+function openBot() {
+    const selectedBotXml = document.getElementById("bot_selector").value;
+    // Using bot.deriv.com with the strategy parameter for better import reliability
+    const botUrl = `https://bot.deriv.com/?strategy=${encodeURIComponent(selectedBotXml)}`;
+    
+    document.getElementById("bot-iframe").src = botUrl;
+    document.getElementById("bot-terminal-overlay").style.display = "block";
+    document.body.style.overflow = "hidden"; // Prevent dashboard scroll
+}
+
+function closeBot() {
+    document.getElementById("bot-terminal-overlay").style.display = "none";
+    document.getElementById("bot-iframe").src = ""; 
+    document.body.style.overflow = "auto"; 
+}
+
+function logout(){
+    localStorage.removeItem("deriv_token");
     window.location.href = "index.html";
 }
 </script>
+
 </body>
 </html>
