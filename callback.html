@@ -69,39 +69,47 @@
     <h2>Verifying Session</h2>
     <p>Please wait while we secure your trading terminal...</p>
 </div>
-
 <script>
-    // Extract OAuth2 token from URL hash (#access_token=...)
-    function handleOAuth() {
-        const hash = window.location.hash.substring(1);
-        const params = new URLSearchParams(hash);
+function handleOAuth() {
+    console.log("Full URL:", window.location.href);
+    console.log("Hash:", window.location.hash);
 
-        const token = params.get("access_token");
+    const hash = window.location.hash.substring(1);
 
-        if (token) {
-
-            // Save token
-            localStorage.setItem("deriv_token", token);
-
-            // Clean URL (remove token from address bar for security)
-            window.history.replaceState({}, document.title, "callback.html");
-
-            // Redirect to dashboard
-            setTimeout(() => {
-                window.location.href = "dashboard.html";
-            }, 1200);
-
-        } else {
-            document.getElementById('status-card').innerHTML = `
-                <h2 style="color:#ef4444;">Authentication Failed</h2>
-                <p>We couldn't retrieve your session from Deriv.</p>
-                <a href="index.html" class="error-btn">Return to Login</a>
-            `;
-        }
+    if (!hash) {
+        showError("No OAuth data returned from Deriv.");
+        return;
     }
 
-    // Run immediately
-    handleOAuth();
+    const params = new URLSearchParams(hash);
+    const token = params.get("access_token");
+
+    if (token) {
+
+        console.log("Access token received:", token);
+
+        localStorage.setItem("deriv_token", token);
+
+        window.history.replaceState({}, document.title, "callback.html");
+
+        setTimeout(() => {
+            window.location.href = "dashboard.html";
+        }, 1000);
+
+    } else {
+        showError("Access token missing in URL.");
+    }
+}
+
+function showError(message) {
+    document.getElementById('status-card').innerHTML = `
+        <h2 style="color:#ef4444;">Authentication Failed</h2>
+        <p>${message}</p>
+        <a href="index.html" class="error-btn">Return to Login</a>
+    `;
+}
+
+handleOAuth();
 </script>
 
 </body>
