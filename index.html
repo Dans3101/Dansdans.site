@@ -6,53 +6,57 @@
     <title>Dans Trading Bots | Login</title>
     <style>
       :root { --primary: #1e40af; --bg: #f3f4f6; }
-      body { margin: 0; font-family: sans-serif; background: var(--bg); display: flex; flex-direction: column; min-height: 100vh; }
+      body { margin: 0; font-family: -apple-system, sans-serif; background: var(--bg); display: flex; flex-direction: column; min-height: 100vh; }
       .navbar { background: white; padding: 15px 5%; display: flex; justify-content: space-between; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
       .main-hero { flex: 1; display: flex; justify-content: center; align-items: center; padding: 20px; }
       .card { background: white; max-width: 400px; width: 100%; padding: 40px; border-radius: 20px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); text-align: center; }
-      .btn-connect { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 18px; }
+      h1 { font-size: 28px; margin-bottom: 10px; color: #111827; }
+      .btn-connect { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 18px; transition: 0.3s; }
+      .btn-connect:hover { opacity: 0.9; transform: translateY(-2px); }
       #loader-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; display: flex; justify-content: center; align-items: center; z-index: 9999; }
     </style>
   </head>
   <body>
 
-    <div id="loader-overlay"><p>Authenticating...</p></div>
+    <div id="loader-overlay"><p>Authenticating session...</p></div>
 
     <nav class="navbar">
-      <div style="font-weight: 800; color: var(--primary);">DANS TRADING</div>
+      <div style="font-weight: 800; color: var(--primary); letter-spacing: 1px;">DANS TRADING</div>
     </nav>
 
     <main class="main-hero">
       <div class="card">
         <h1>Welcome Back</h1>
-        <p style="color: #6b7280; margin-bottom: 30px;">Connect your Deriv account to start trading.</p>
+        <p style="color: #6b7280; margin-bottom: 30px;">Connect your Deriv account to launch the automated terminal.</p>
         <button class="btn-connect" onclick="connectDeriv()">Login with Deriv</button>
       </div>
     </main>
 
     <script>
+      const APP_ID = 129457;
+
       // --- 1. THE TOKEN CATCHER ---
-      // This runs as soon as the page loads to see if Deriv sent tokens in the URL
       (function handleDerivResponse() {
           const urlParams = new URLSearchParams(window.location.search);
-          const token1 = urlParams.get('token1'); // Official Deriv parameter
+          const token1 = urlParams.get('token1'); 
 
           if (token1) {
-              // We found a token! Save it and go to dashboard
+              // SAVE TOKEN
               localStorage.setItem("deriv_token", token1);
               
-              // Optional: Save account ID if needed
-              const acct1 = urlParams.get('acct1');
-              if(acct1) localStorage.setItem("account_id", acct1);
+              // SAVE AUTO-LAUNCH FLAG 
+              // This tells dashboard.html to run the bot as soon as it loads
+              localStorage.setItem("auto_launch_bot", "true");
 
+              // REDIRECT TO DASHBOARD
               window.location.href = "dashboard.html";
           } else {
-              // No token in URL? Check if we already have one saved
+              // Check if we already have a session
               const existingToken = localStorage.getItem("deriv_token");
               if (existingToken) {
                   window.location.href = "dashboard.html";
               } else {
-                  // Truly no session, show the login button
+                  // Show the login UI
                   document.getElementById("loader-overlay").style.display = "none";
               }
           }
@@ -60,12 +64,8 @@
 
       // --- 2. THE CONNECT FUNCTION ---
       function connectDeriv() {
-        const appId = 129457;
-        // MUST point to index.html so the "Token Catcher" above can see the response
-        const redirectUri = window.location.origin + window.location.pathname;
-        
-        const oauthUrl = `https://oauth.deriv.com/oauth2/authorize?app_id=${appId}&l=EN&brand=deriv`;
-        // Note: Deriv uses the redirect URL registered in your App Registration Portal
+        // We tell Deriv where to send the user back after login
+        const oauthUrl = `https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&l=EN&brand=deriv`;
         window.location.href = oauthUrl;
       }
     </script>
