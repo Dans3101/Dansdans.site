@@ -27,7 +27,7 @@
     <main class="main-hero">
       <div class="card">
         <h1>Welcome Back</h1>
-        <p style="color: #6b7280; margin-bottom: 30px;">Connect your Deriv account to launch the automated terminal.</p>
+        <p style="color: #6b7280; margin-bottom: 30px;">Login once to securely connect your Real and Demo accounts.</p>
         <button class="btn-connect" onclick="connectDeriv()">Login with Deriv</button>
       </div>
     </main>
@@ -35,28 +35,35 @@
     <script>
       const APP_ID = 129457;
 
-      // --- 1. THE TOKEN CATCHER ---
+      // --- 1. THE MULTI-TOKEN CATCHER ---
       (function handleDerivResponse() {
           const urlParams = new URLSearchParams(window.location.search);
-          const token1 = urlParams.get('token1'); 
+          
+          // Deriv returns multiple tokens (token1, token2, etc.)
+          const t1 = urlParams.get('token1'); 
+          const t2 = urlParams.get('token2'); 
 
-          if (token1) {
-              // SAVE TOKEN
-              localStorage.setItem("deriv_token", token1);
+          if (t1) {
+              // SAVE BOTH TOKENS
+              // dashboard.html uses these names to swap accounts instantly
+              localStorage.setItem("deriv_token_1", t1);
               
-              // SAVE AUTO-LAUNCH FLAG 
-              // This tells dashboard.html to run the bot as soon as it loads
+              if (t2) {
+                  localStorage.setItem("deriv_token_2", t2);
+              }
+              
+              // Set flag to auto-run bot if needed
               localStorage.setItem("auto_launch_bot", "true");
 
               // REDIRECT TO DASHBOARD
               window.location.href = "dashboard.html";
           } else {
-              // Check if we already have a session
-              const existingToken = localStorage.getItem("deriv_token");
+              // Check if a session already exists in storage
+              const existingToken = localStorage.getItem("deriv_token_1");
               if (existingToken) {
                   window.location.href = "dashboard.html";
               } else {
-                  // Show the login UI
+                  // No tokens found, show the login button
                   document.getElementById("loader-overlay").style.display = "none";
               }
           }
@@ -64,7 +71,7 @@
 
       // --- 2. THE CONNECT FUNCTION ---
       function connectDeriv() {
-        // We tell Deriv where to send the user back after login
+        // Force the OAuth URL to request permissions for both account types
         const oauthUrl = `https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&l=EN&brand=deriv`;
         window.location.href = oauthUrl;
       }
