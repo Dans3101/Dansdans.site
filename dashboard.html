@@ -4,22 +4,57 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dans Trading Dashboard</title>
+
 <style>
 :root{
---primary:#1e40af; --success:#10b981; --danger:#ef4444; --warning:#f59e0b; --bg:#f3f4f6;
+--primary:#1e40af;
+--success:#10b981;
+--danger:#ef4444;
+--bg:#f3f4f6;
 font-family:Segoe UI,Roboto;
 }
 body{margin:0;background:var(--bg);}
-header{background:var(--primary);color:white;display:flex;justify-content:space-between;align-items:center;padding:12px 20px;}
+header{
+background:var(--primary);
+color:white;
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:12px 20px;
+}
 .balance{font-weight:bold}
-button{padding:10px 14px;border:none;border-radius:8px;cursor:pointer;font-weight:bold;}
-.switch{background:var(--warning);color:white}
+button{
+padding:8px 12px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+font-weight:bold;
+}
 .logout{background:var(--danger);color:white}
 .container{padding:25px;max-width:600px;margin:auto}
-.card{background:white;padding:25px;border-radius:15px;box-shadow:0 10px 25px rgba(0,0,0,0.05);margin-bottom:20px;}
-input{width:100%;padding:12px;margin-top:8px;margin-bottom:15px;border-radius:8px;border:1px solid #ddd;}
-.run{background:var(--primary);color:white;width:100%;}
-.log-item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;font-size:0.9rem;}
+.card{
+background:white;
+padding:25px;
+border-radius:15px;
+box-shadow:0 10px 25px rgba(0,0,0,0.05);
+margin-bottom:20px;
+}
+input{
+width:100%;
+padding:12px;
+margin-top:8px;
+margin-bottom:15px;
+border-radius:8px;
+border:1px solid #ddd;
+}
+.run{background:var(--primary);color:white;width:100%}
+.log-item{
+display:flex;
+justify-content:space-between;
+padding:8px 0;
+border-bottom:1px solid #eee;
+font-size:0.9rem;
+}
 </style>
 </head>
 <body>
@@ -27,16 +62,16 @@ input{width:100%;padding:12px;margin-top:8px;margin-bottom:15px;border-radius:8p
 <header>
 <div>
 <div id="loginid">Connecting...</div>
-<div id="accountType" style="font-size:0.8rem;opacity:0.8;"></div>
+<div id="accountType" style="font-size:0.8rem;"></div>
 </div>
 <div>
 <span class="balance" id="balance">0.00</span>
-<button class="switch" onclick="switchAccount()">Switch</button>
 <button class="logout" onclick="logout()">Logout</button>
 </div>
 </header>
 
 <div class="container">
+
 <div class="card">
 <h3>Digit Over Bot</h3>
 
@@ -46,121 +81,112 @@ input{width:100%;padding:12px;margin-top:8px;margin-bottom:15px;border-radius:8p
 <label>Prediction (0-9)</label>
 <input type="number" id="prediction" value="5" min="0" max="9">
 
-<button class="run" onclick="runBot()">Run Trade</button>
+<button class="run" onclick="runTrade()">Execute Trade</button>
 </div>
 
 <div class="card">
 <h4>Trade Log</h4>
 <div id="log">No trades yet.</div>
 </div>
+
 </div>
 
 <script>
+
 const APP_ID = 129457;
+const token = localStorage.getItem("deriv_token");
+
+if(!token){
+window.location.href="index.html";
+}
+
 let ws;
-let token1 = localStorage.getItem("deriv_token_1");
-let token2 = localStorage.getItem("deriv_token_2");
-let currentToken = token1;
-let currentLoginId = "";
 
-if(!currentToken) window.location.href="index.html";
+connect();
 
-// Connect to Deriv WS
-connectWS(currentToken);
+function connect(){
+ws = new WebSocket("wss://ws.derivws.com/websockets/v3?app_id="+APP_ID);
 
-function connectWS(token){
-  ws = new WebSocket("wss://ws.derivws.com/websockets/v3?app_id="+APP_ID);
+ws.onopen = () => {
+ws.send(JSON.stringify({authorize:token}));
+};
 
-  ws.onopen = ()=> ws.send(JSON.stringify({authorize:token}));
+ws.onmessage = (msg)=>{
+const data = JSON.parse(msg.data);
 
-  ws.onmessage = (msg)=>{
-      const data = JSON.parse(msg.data);
-
-      if(data.error){
-          alert("Authorization failed. Please login again.");
-          localStorage.clear();
-          window.location.href="index.html";
-      }
-
-      if(data.msg_type==="authorize"){
-          currentLoginId = data.authorize.loginid;
-          document.getElementById("loginid").innerText = currentLoginId;
-          document.getElementById("accountType").innerText = currentLoginId.startsWith("VRTC") ? "Demo Account" : "Real Account";
-          ws.send(JSON.stringify({balance:1,subscribe:1}));
-      }
-
-      if(data.msg_type==="balance"){
-          document.getElementById("balance").innerText = data.balance.balance+" "+data.balance.currency;
-      }
-
-      if(data.msg_type==="proposal"){
-          const stake = parseFloat(document.getElementById("stake").value);
-          const prediction = parseInt(document.getElementById("prediction").value);
-          ws.send({buy:data.proposal.id, price:stake});
-      }
-
-      if(data.msg_type==="buy"){
-          logTrade("Trade Opened", data.buy.contract_id);
-          ws.send(JSON.stringify({proposal_open_contract:1, contract_id:data.buy.contract_id, subscribe:1}));
-      }
-
-      if(data.msg_type==="proposal_open_contract"){
-          if(data.proposal_open_contract.is_sold){
-              logTrade("Closed", data.proposal_open_contract.profit);
-          }
-      }
-
-      if(data.msg_type==="account_list"){
-          const accounts = data.account_list;
-          const demo = accounts.find(a=>a.loginid.startsWith("VRTC"));
-          const real = accounts.find(a=>!a.loginid.startsWith("VRTC"));
-          const target = currentLoginId.startsWith("VRTC") ? real : demo;
-          if(target){
-              currentToken = target.token;
-              ws.send(JSON.stringify({authorize:currentToken}));
-          }
-      }
-  };
+if(data.error){
+alert("Session expired. Please login again.");
+logout();
 }
 
-// Run bot
-function runBot(){
-  const stake = parseFloat(document.getElementById("stake").value);
-  const prediction = parseInt(document.getElementById("prediction").value);
+if(data.msg_type==="authorize"){
+document.getElementById("loginid").innerText=data.authorize.loginid;
 
-  ws.send(JSON.stringify({
-      proposal:1,
-      amount:stake,
-      basis:"stake",
-      contract_type:"DIGITOVER",
-      currency:"USD",
-      symbol:"R_100",
-      duration:1,
-      duration_unit:"t",
-      barrier:prediction
-  }));
+const isDemo=data.authorize.loginid.startsWith("VRTC");
+document.getElementById("accountType").innerText=isDemo?"Demo Account":"Real Account";
+
+ws.send(JSON.stringify({balance:1,subscribe:1}));
 }
 
-// Switch accounts
-function switchAccount(){
-  ws.send(JSON.stringify({account_list:1}));
+if(data.msg_type==="balance"){
+document.getElementById("balance").innerText=
+data.balance.balance+" "+data.balance.currency;
 }
 
-// Logout
+if(data.msg_type==="proposal"){
+ws.send(JSON.stringify({
+buy:data.proposal.id,
+price:parseFloat(document.getElementById("stake").value)
+}));
+}
+
+if(data.msg_type==="buy"){
+log("Trade Opened",data.buy.contract_id);
+ws.send(JSON.stringify({
+proposal_open_contract:1,
+contract_id:data.buy.contract_id,
+subscribe:1
+}));
+}
+
+if(data.msg_type==="proposal_open_contract"){
+if(data.proposal_open_contract.is_sold){
+log("Closed",data.proposal_open_contract.profit);
+}
+}
+
+};
+
+}
+
+function runTrade(){
+ws.send(JSON.stringify({
+proposal:1,
+amount:parseFloat(document.getElementById("stake").value),
+basis:"stake",
+contract_type:"DIGITOVER",
+currency:"USD",
+symbol:"R_100",
+duration:1,
+duration_unit:"t",
+barrier:document.getElementById("prediction").value
+}));
+}
+
 function logout(){
-  localStorage.clear();
-  window.location.href="index.html";
+localStorage.removeItem("deriv_token");
+window.location.href="index.html";
 }
 
-// Trade log
-function logTrade(type,value){
-  const log = document.getElementById("log");
-  const div = document.createElement("div");
-  div.className="log-item";
-  div.innerHTML=`<span>${type}</span><span>${value}</span>`;
-  if(log.innerText==="No trades yet.") log.innerHTML="";
-  log.prepend(div);
+function log(type,value){
+const logDiv=document.getElementById("log");
+if(logDiv.innerText==="No trades yet.") logDiv.innerHTML="";
+const div=document.createElement("div");
+div.className="log-item";
+div.innerHTML=`<span>${type}</span><span>${value}</span>`;
+logDiv.prepend(div);
 }
+
 </script>
 
 </body>
