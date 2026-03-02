@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en" dir="auto">
+<html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dans Trading Bots | Login</title>
 <style>
 :root { --primary:#1e40af; --bg:#f3f4f6; }
@@ -35,41 +35,37 @@ h1 { font-size:28px; margin-bottom:10px; color:#111827;}
 <script>
 const APP_ID = 129457;
 
-// --- 1. Capture OAuth Tokens Safely ---
+// Capture OAuth tokens and redirect safely
 (function captureTokens() {
     const params = new URLSearchParams(window.location.search);
     const t1 = params.get("token1");
     const t2 = params.get("token2");
 
-    if (t1) {
+    if(t1){
         localStorage.setItem("deriv_token_1", t1);
-        if (t2) localStorage.setItem("deriv_token_2", t2);
+        if(t2) localStorage.setItem("deriv_token_2", t2);
 
-        // Remove OAuth params from URL to prevent loop
+        // Clean URL to prevent loop
         window.history.replaceState({}, document.title, "index.html");
 
-        // Go to dashboard
         window.location.href = "dashboard.html";
         return;
     }
 
-    // --- 2. Check Existing Session ---
-    const token = localStorage.getItem("deriv_token_1");
-    if (token) {
+    // Check existing session
+    if(localStorage.getItem("deriv_token_1")){
         window.location.href = "dashboard.html";
     } else {
-        // No token, show login
         document.getElementById("loader-overlay").style.display = "none";
     }
 })();
 
-// --- 3. Connect to Deriv OAuth ---
-function connectDeriv() {
+// Start OAuth login
+function connectDeriv(){
     const redirectUri = window.location.origin + "/Dansdans.site/index.html";
     const oauthUrl = `https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=read,trade`;
     window.location.href = oauthUrl;
 }
 </script>
-
 </body>
 </html>
