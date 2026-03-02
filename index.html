@@ -33,48 +33,41 @@
     </main>
 
     <script>
-      const APP_ID = 129457;
+const APP_ID = 129457;
 
-      // --- 1. THE MULTI-TOKEN CATCHER ---
-      (function handleDerivResponse() {
-          const urlParams = new URLSearchParams(window.location.search);
-          
-          // Deriv returns multiple tokens (token1, token2, etc.)
-          const t1 = urlParams.get('token1'); 
-          const t2 = urlParams.get('token2'); 
+(function checkSession() {
+    const token = localStorage.getItem("deriv_token_1");
 
-          if (t1) {
-              // SAVE BOTH TOKENS
-              // dashboard.html uses these names to swap accounts instantly
-              localStorage.setItem("deriv_token_1", t1);
-              
-              if (t2) {
-                  localStorage.setItem("deriv_token_2", t2);
-              }
-              
-              // Set flag to auto-run bot if needed
-              localStorage.setItem("auto_launch_bot", "true");
+    // Only auto redirect if token exists
+    if (token) {
+        window.location.href = "dashboard.html";
+    } else {
+        document.getElementById("loader-overlay").style.display = "none";
+    }
+})();
 
-              // REDIRECT TO DASHBOARD
-              window.location.href = "dashboard.html";
-          } else {
-              // Check if a session already exists in storage
-              const existingToken = localStorage.getItem("deriv_token_1");
-              if (existingToken) {
-                  window.location.href = "dashboard.html";
-              } else {
-                  // No tokens found, show the login button
-                  document.getElementById("loader-overlay").style.display = "none";
-              }
-          }
-      })();
+function connectDeriv() {
+    const redirectUri = window.location.origin + "/Dansdans.site/index.html";
+    const oauthUrl = `https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=read,trade`;
+    window.location.href = oauthUrl;
+}
 
-      // --- 2. THE CONNECT FUNCTION ---
-      function connectDeriv() {
-        // Force the OAuth URL to request permissions for both account types
-        const oauthUrl = `https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&l=EN&brand=deriv`;
-        window.location.href = oauthUrl;
-      }
-    </script>
+// Capture OAuth tokens safely
+(function captureTokens() {
+    const params = new URLSearchParams(window.location.search);
+    const t1 = params.get("token1");
+    const t2 = params.get("token2");
+
+    if (t1) {
+        localStorage.setItem("deriv_token_1", t1);
+        if (t2) localStorage.setItem("deriv_token_2", t2);
+
+        // Clean URL to prevent loop
+        window.history.replaceState({}, document.title, "index.html");
+
+        window.location.href = "dashboard.html";
+    }
+})();
+</script>
   </body>
 </html>
