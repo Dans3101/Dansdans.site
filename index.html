@@ -1,70 +1,133 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Dans Trading Bots | Login</title>
-<style>
-:root { --primary: #1e40af; --bg: #f3f4f6; }
-body { margin:0; font-family:-apple-system, sans-serif; background:var(--bg); display:flex; flex-direction:column; min-height:100vh; }
-.navbar { background:white; padding:15px 5%; display:flex; justify-content:space-between; box-shadow:0 2px 10px rgba(0,0,0,0.05); }
-.main-hero { flex:1; display:flex; justify-content:center; align-items:center; padding:20px; }
-.card { background:white; max-width:400px; width:100%; padding:40px; border-radius:20px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); text-align:center; }
-h1 { font-size:28px; margin-bottom:10px; color:#111827; }
-.btn-login { width:100%; padding:16px; background:var(--primary); color:white; border:none; border-radius:12px; font-weight:600; cursor:pointer; font-size:18px; transition:0.3s; margin-bottom:15px; }
-.btn-login:hover { opacity:0.9; transform:translateY(-2px); }
-#loader-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:white; display:flex; justify-content:center; align-items:center; z-index:9999; font-weight:bold; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Dans Trading | Secure Terminal</title>
+    <style>
+        :root {
+            --primary: #00ff88; /* Cyber Green */
+            --bg: #0a0a1a;
+            --card-bg: #16162d;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- CYBER TECH LOADER (From your source) --- */
+        #loader-overlay {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at center, #1a1a2e 0%, #0a0a1a 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .core {
+            width: 100px;
+            height: 100px;
+            position: relative;
+        }
+
+        .core-ring {
+            position: absolute;
+            inset: 0;
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .core-center {
+            position: absolute;
+            inset: 30px;
+            background: var(--primary);
+            border-radius: 50%;
+            box-shadow: 0 0 20px var(--primary);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.3; }
+        }
+
+        /* --- LOGIN CARD --- */
+        .card {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 24px;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        .btn-connect {
+            width: 100%;
+            padding: 18px;
+            background: var(--primary);
+            color: #000;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
 
-<div id="loader-overlay">Authenticating session...</div>
+    <div id="loader-overlay">
+        <div class="core">
+            <div class="core-ring"></div>
+            <div class="core-center"></div>
+        </div>
+        <p style="margin-top: 20px; letter-spacing: 3px; color: var(--primary);">INITIALIZING TERMINAL...</p>
+    </div>
 
-<nav class="navbar">
-  <div style="font-weight:800;color:var(--primary);letter-spacing:1px;">DANS TRADING</div>
-</nav>
+    <div class="card">
+        <h1 style="margin:0;">DANS TRADING</h1>
+        <p style="color: #888; font-size: 0.9rem;">Advanced Automated Bot Builder</p>
+        <button class="btn-connect" onclick="connectDeriv()">Connect Deriv Account</button>
+    </div>
 
-<main class="main-hero">
-  <div class="card">
-    <h1>Welcome Back</h1>
-    <p style="color:#6b7280;margin-bottom:30px;">Select account type to login and start trading.</p>
-    <button class="btn-login" onclick="login('demo')">Login Demo Account</button>
-    <button class="btn-login" onclick="login('real')">Login Real Account</button>
-  </div>
-</main>
+    <script>
+        const APP_ID = 129457;
 
-<script>
-const APP_ID = 129457;
-
-function login(type){
-    const redirectUri = window.location.origin + "/Dansdans.site/index.html?type=" + type;
-    const oauthUrl = `https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=read,trade`;
-    window.location.href = oauthUrl;
-}
-
-// Capture OAuth token after redirect
-(function captureToken(){
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get("token1");
-    const type = params.get("type");
-
-    if(token && type){
-        if(type === "demo") localStorage.setItem("deriv_demo_token", token);
-        if(type === "real") localStorage.setItem("deriv_real_token", token);
-
-        // Clean URL
-        window.history.replaceState({}, document.title, "index.html");
-
-        window.location.href = "dashboard.html";
-    } else {
-        // Check if already logged in
-        if(localStorage.getItem("deriv_demo_token") || localStorage.getItem("deriv_real_token")){
-            window.location.href = "dashboard.html";
-        } else {
-            document.getElementById("loader-overlay").style.display="none";
+        function connectDeriv() {
+            window.location.href = `https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&l=EN&brand=deriv`;
         }
-    }
-})();
-</script>
+
+        window.onload = () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('token1')) {
+                localStorage.setItem("deriv_token_1", urlParams.get('token1'));
+                localStorage.setItem("deriv_token_2", urlParams.get('token2') || "");
+                window.location.href = "dashboard.html";
+            } else if (localStorage.getItem("deriv_token_1")) {
+                window.location.href = "dashboard.html";
+            } else {
+                // Hide loader after 2 seconds to show login
+                setTimeout(() => {
+                    document.getElementById("loader-overlay").style.display = "none";
+                }, 2000);
+            }
+        };
+    </script>
 </body>
 </html>
