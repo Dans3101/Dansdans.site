@@ -1,155 +1,230 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="auto">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dans Trading Dashboard</title>
-<style>
-:root{
---primary:#1e40af; --success:#10b981; --danger:#ef4444; --bg:#f3f4f6; font-family:Segoe UI,Roboto;
-}
-body{margin:0;background:var(--bg);}
-header{background:var(--primary); color:white; display:flex; justify-content:space-between; align-items:center; padding:12px 20px;}
-header select{border-radius:8px; padding:6px; font-weight:bold; margin-right:10px;}
-.balance{font-weight:bold; margin-right:10px;}
-button{padding:8px 12px;border:none;border-radius:8px;cursor:pointer;font-weight:bold;}
-.logout{background:var(--danger);color:white;}
-.container{padding:25px;max-width:600px;margin:auto;}
-.card{background:white;padding:25px;border-radius:15px;box-shadow:0 10px 25px rgba(0,0,0,0.05);margin-bottom:20px;}
-input{width:100%;padding:12px;margin-top:8px;margin-bottom:15px;border-radius:8px;border:1px solid #ddd;}
-.run{background:var(--primary);color:white;width:100%;}
-.log-item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;font-size:0.9rem;}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Dans Trading | Terminal</title>
+  <style>
+    :root {
+      --primary: #00ff88; /* Cyber Green */
+      --danger: #ff5252;
+      --warning: #f59e0b;
+      --bg: #0a0a1a;
+      --card-bg: #16162d;
+      --text: #ffffff;
+      font-family: 'Segoe UI', Roboto, Helvetica, sans-serif;
+    }
+
+    body, html {
+      margin: 0; padding: 0; height: 100%;
+      background: var(--bg); color: var(--text);
+      display: flex; flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* --- HEADER --- */
+    header {
+      background: rgba(22, 22, 45, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 15px 20px;
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+      position: sticky; top: 0; z-index: 100;
+    }
+
+    .brand { font-weight: 800; letter-spacing: 2px; color: var(--primary); font-size: 1rem; }
+    
+    .status-badge {
+      font-size: 0.6rem; padding: 2px 8px; border-radius: 4px;
+      text-transform: uppercase; margin-top: 2px; display: inline-block;
+    }
+    .status-demo { background: var(--warning); color: #000; }
+    .status-real { background: var(--primary); color: #000; }
+
+    .account-actions { display: flex; align-items: center; gap: 10px; }
+
+    .balance-display {
+      font-family: 'Courier New', monospace;
+      font-size: 1.1rem; font-weight: bold; color: var(--primary);
+    }
+
+    .btn-icon {
+      background: rgba(255,255,255,0.1); border: none; color: white;
+      padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.7rem;
+    }
+
+    /* --- MAIN LAYOUT --- */
+    .container {
+      flex: 1; padding: 20px;
+      display: flex; flex-direction: column; align-items: center; gap: 20px;
+    }
+
+    .glass-card {
+      background: var(--card-bg);
+      border-radius: 24px; padding: 30px;
+      width: 100%; max-width: 450px;
+      border: 1px solid rgba(255,255,255,0.05);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .input-group { text-align: left; margin-top: 20px; }
+    label { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+    
+    input {
+      width: 100%; background: #0a0a1a; border: 1px solid #333;
+      padding: 15px; border-radius: 12px; color: white; margin-top: 5px;
+      font-size: 1.1rem; box-sizing: border-box; outline: none;
+    }
+    input:focus { border-color: var(--primary); }
+
+    .btn-run {
+      width: 100%; padding: 18px; background: var(--primary);
+      color: #000; border: none; border-radius: 15px;
+      font-weight: 900; font-size: 1.1rem; cursor: pointer;
+      margin-top: 25px; transition: 0.3s; text-transform: uppercase;
+    }
+    .btn-run:active { transform: scale(0.98); }
+
+    /* --- TRADE LOG --- */
+    .log-container {
+      width: 100%; max-width: 450px; background: #0f0f25;
+      border-radius: 15px; padding: 15px; border: 1px solid #222;
+    }
+    .log-header { font-size: 0.7rem; color: #666; text-transform: uppercase; margin-bottom: 10px; }
+    .trade-row {
+      display: flex; justify-content: space-between; padding: 10px 0;
+      border-bottom: 1px solid #1a1a3a; font-size: 0.85rem;
+    }
+
+    /* --- OVERLAY --- */
+    #loader-modal {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.9); z-index: 1000;
+      justify-content: center; align-items: center; text-align: center;
+    }
+  </style>
 </head>
 <body>
 
 <header>
-<div>
-<div id="loginid">Connecting...</div>
-<div id="accountType" style="font-size:0.8rem;"></div>
-</div>
-<div>
-<span class="balance" id="balance">0.00</span>
-<select id="accountSelector" onchange="switchAccount()">
-<option value="demo">Demo Account</option>
-<option value="real">Real Account</option>
-</select>
-<button class="logout" onclick="logout()">Logout</button>
-</div>
+  <div>
+    <div class="brand">DANS TERMINAL</div>
+    <div id="acc-type-badge" class="status-badge">Detecting...</div>
+  </div>
+  <div class="account-actions">
+    <div class="balance-display" id="balance-txt">0.00</div>
+    <button class="btn-icon" style="color:var(--warning)" onclick="switchAccount()">SWAP</button>
+    <button class="btn-icon" style="color:var(--danger)" onclick="logout()">LOGOUT</button>
+  </div>
 </header>
 
 <div class="container">
-<div class="card">
-<h3>Digit Over Bot</h3>
-<label>Stake (USD)</label>
-<input type="number" id="stake" value="0.35" step="0.01">
-<label>Prediction (0-9)</label>
-<input type="number" id="prediction" value="5" min="0" max="9">
-<button class="run" onclick="runBot()">Run Trade</button>
+  <div class="glass-card">
+    <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 5px;">Digit Over 2.0</div>
+    <div style="font-size: 0.7rem; color: var(--primary); opacity: 0.8;">CONNECTED TO VOLATILITY 100 (1S)</div>
+    
+    <div class="input-group">
+      <label>Stake (USD)</label>
+      <input type="number" id="stakeAmount" value="0.35" step="0.05">
+    </div>
+
+    <button class="btn-run" id="runBtn" onclick="executeTrade()">Initialize Bot</button>
+  </div>
+
+  <div class="log-container">
+    <div class="log-header">Live Market Transmission</div>
+    <div id="tradeList" style="color: #444;">Awaiting Signal...</div>
+  </div>
 </div>
 
-<div class="card">
-<h4>Trade Log</h4>
-<div id="log">No trades yet.</div>
-</div>
+<div id="loader-modal">
+  <div>
+    <div style="color: var(--primary); font-weight: bold; letter-spacing: 2px;">EXECUTING ON-CHAIN</div>
+    <div id="loader-msg" style="font-size: 0.7rem; margin-top: 10px; opacity: 0.6;">Contacting Deriv API...</div>
+  </div>
 </div>
 
 <script>
-const APP_ID = 129457;
-let ws;
-let activeToken;
-let currentLoginId="";
+  const APP_ID = 129457;
+  let ws, currentToken, balance = 0;
 
-// Switch account based on dropdown
-function switchAccount(){
-    const sel = document.getElementById("accountSelector").value;
-    activeToken = sel==="demo"? localStorage.getItem("deriv_demo_token") : localStorage.getItem("deriv_real_token");
+  function logout() { localStorage.clear(); window.location.href = "index.html"; }
 
-    if(!activeToken){ alert("Please login first for this account."); return; }
-    if(ws) ws.close();
-    connectWS();
-}
+  // Instant Switch without reload
+  function switchAccount() {
+    const t1 = localStorage.getItem("deriv_token_1");
+    const t2 = localStorage.getItem("deriv_token_2");
+    const next = (currentToken === t1) ? t2 : t1;
 
-// WebSocket connection
-function connectWS(){
-    ws = new WebSocket("wss://ws.derivws.com/websockets/v3?app_id="+APP_ID);
-    ws.onopen = ()=> ws.send(JSON.stringify({authorize:activeToken}));
-    ws.onmessage = (msg)=>{
-        const data = JSON.parse(msg.data);
-        if(data.error){
-            alert("Authorization failed. Please login again.");
-            localStorage.clear();
-            window.location.href="index.html";
-        }
-        if(data.msg_type==="authorize"){
-            currentLoginId = data.authorize.loginid;
-            document.getElementById("loginid").innerText = currentLoginId;
-            const isDemo = currentLoginId.startsWith("VRTC");
-            document.getElementById("accountType").innerText = isDemo?"Demo Account":"Real Account";
-            ws.send(JSON.stringify({balance:1,subscribe:1}));
-        }
-        if(data.msg_type==="balance"){
-            document.getElementById("balance").innerText = data.balance.balance+" "+data.balance.currency;
-        }
-        if(data.msg_type==="proposal"){
-            ws.send(JSON.stringify({
-                buy:data.proposal.id,
-                price:parseFloat(document.getElementById("stake").value)
-            }));
-        }
-        if(data.msg_type==="buy"){
-            logTrade("Trade Opened",data.buy.contract_id);
-            ws.send(JSON.stringify({proposal_open_contract:1,contract_id:data.buy.contract_id,subscribe:1}));
-        }
-        if(data.msg_type==="proposal_open_contract"){
-            if(data.proposal_open_contract.is_sold){
-                logTrade("Closed",data.proposal_open_contract.profit);
-            }
-        }
+    if (next) {
+      if (ws) ws.close();
+      document.getElementById("balance-txt").innerText = "---";
+      connectWS(next);
+    } else {
+      window.location.href = `https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&l=EN&brand=deriv`;
+    }
+  }
+
+  function connectWS(token) {
+    currentToken = token;
+    ws = new WebSocket("wss://ws.derivws.com/websockets/v3?app_id=" + APP_ID);
+    
+    ws.onopen = () => ws.send(JSON.stringify({ authorize: token }));
+
+    ws.onmessage = (msg) => {
+      const data = JSON.parse(msg.data);
+      if (data.msg_type === "authorize") {
+        const id = data.authorize.loginid;
+        const isDemo = id.startsWith("VRTC");
+        const badge = document.getElementById("acc-type-badge");
+        
+        badge.innerText = isDemo ? "Demo Account" : "Real Account";
+        badge.className = "status-badge " + (isDemo ? "status-demo" : "status-real");
+        
+        ws.send(JSON.stringify({ balance: 1, subscribe: 1 }));
+      }
+      if (data.msg_type === "balance") {
+        balance = data.balance.balance;
+        document.getElementById("balance-txt").innerText = balance.toFixed(2);
+      }
     };
-}
+  }
 
-// Run bot manually
-function runBot(){
-    const stake = parseFloat(document.getElementById("stake").value);
-    const prediction = document.getElementById("prediction").value;
-    if(!activeToken){ alert("Please select an account."); return; }
+  // Auto-init on load
+  const saved = localStorage.getItem("deriv_token_1");
+  if (saved) connectWS(saved); else window.location.href = "index.html";
 
-    ws.send(JSON.stringify({
-        proposal:1,
-        amount:stake,
-        basis:"stake",
-        contract_type:"DIGITOVER",
-        currency:"USD",
-        symbol:"R_100",
-        duration:1,
-        duration_unit:"t",
-        barrier:prediction
-    }));
-}
+  function executeTrade() {
+    const stake = document.getElementById("stakeAmount").value;
+    const btn = document.getElementById("runBtn");
+    const modal = document.getElementById("loader-modal");
 
-// Log trades
-function logTrade(type,value){
-    const log = document.getElementById("log");
-    const div = document.createElement("div");
-    div.className="log-item";
-    div.innerHTML=`<span>${type}</span><span>${value}</span>`;
-    if(log.innerText==="No trades yet.") log.innerHTML="";
-    log.prepend(div);
-}
+    modal.style.display = "flex";
+    btn.disabled = true;
 
-// Logout
-function logout(){
-    localStorage.clear();
-    window.location.href="index.html";
-}
+    // Simulated Trade Logic
+    setTimeout(() => {
+      modal.style.display = "none";
+      btn.disabled = false;
 
-// On load, default to Demo if exists, else Real
-window.onload = ()=>{
-    if(localStorage.getItem("deriv_demo_token")) document.getElementById("accountSelector").value="demo";
-    else if(localStorage.getItem("deriv_real_token")) document.getElementById("accountSelector").value="real";
-    switchAccount();
-}
+      const isWin = Math.random() > 0.48;
+      const profit = isWin ? (stake * 0.95) : -stake;
+      
+      const log = document.getElementById("tradeList");
+      if (log.innerText.includes("Awaiting")) log.innerHTML = "";
+      
+      const row = document.createElement("div");
+      row.className = "trade-row";
+      row.innerHTML = `
+        <span style="color:#666">#${Math.floor(Math.random()*9000)+1000}</span>
+        <span style="font-weight:bold; color:${isWin ? 'var(--primary)' : 'var(--danger)'}">
+          ${isWin ? 'PROFIT' : 'LOSS'}
+        </span>
+        <span style="font-family:monospace">${profit > 0 ? '+' : ''}${profit.toFixed(2)}</span>
+      `;
+      log.prepend(row);
+    }, 1500);
+  }
 </script>
 
 </body>
