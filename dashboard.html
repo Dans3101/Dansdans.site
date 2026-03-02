@@ -9,6 +9,7 @@
       --primary: #1e40af;
       --success: #10b981;
       --danger: #ef4444;
+      --warning: #f59e0b;
       --bg-light: #f3f4f6;
       --card-bg: #ffffff;
       font-size: 16px;
@@ -45,7 +46,7 @@
     }
 
     .btn-switch {
-      background: #f59e0b; /* Orange/Gold for visibility */
+      background: var(--warning);
       color: white;
       border: none;
       padding: 6px 10px;
@@ -146,38 +147,52 @@
 <div id="loader-modal">
   <div style="text-align:center;">
     <h3>Connecting...</h3>
-    <p>Retrieving secure account data</p>
+    <p id="loader-text">Retrieving secure account data</p>
   </div>
 </div>
 
 <script>
   const APP_ID = 129457;
   let ws, accountBalance = 0;
-  let isDemo = false;
+  let currentToken = "";
 
-  // --- 1. SESSION MANAGEMENT ---
   function logout() {
-      localStorage.removeItem("deriv_token");
+      localStorage.clear();
       window.location.href = "index.html";
   }
 
+  // Instant Switching Logic
   function switchAccount() {
-      // Clear current token to force Deriv to ask for account selection
-      localStorage.removeItem("deriv_token");
-      window.location.href = `https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&l=EN&brand=deriv`;
+      const t1 = localStorage.getItem("deriv_token_1");
+      const t2 = localStorage.getItem("deriv_token_2");
+      
+      // Determine the next token to use
+      const nextToken = (currentToken === t1) ? t2 : t1;
+
+      if (nextToken) {
+          if (ws) ws.close(); // Close current connection before swapping
+          document.getElementById("balance-display").innerText = "Switching...";
+          connectWS(nextToken);
+      } else {
+          // If the second token wasn't captured, re-authenticate once
+          window.location.href = `https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&l=EN&brand=deriv`;
+      }
   }
 
   (function init() {
       const params = new URLSearchParams(window.location.search);
-      const token1 = params.get("token1");
+      const t1 = params.get("token1");
+      const t2 = params.get("token2");
 
-      if (token1) {
-          localStorage.setItem("deriv_token", token1);
+      // On first login, capture all available tokens
+      if (t1) {
+          localStorage.setItem("deriv_token_1", t1);
+          if (t2) localStorage.setItem("deriv_token_2", t2);
           window.location.href = window.location.origin + window.location.pathname;
           return;
       }
 
-      const savedToken = localStorage.getItem("deriv_token");
+      const savedToken = localStorage.getItem("deriv_token_1");
       if (savedToken) {
           connectWS(savedToken);
       } else {
@@ -185,8 +200,8 @@
       }
   })();
 
-  // --- 2. LIVE CONNECTION ---
   function connectWS(token){
+    currentToken = token;
     ws = new WebSocket("wss://ws.derivws.com/websockets/v3?app_id=" + APP_ID);
     
     ws.onopen = () => {
@@ -200,11 +215,11 @@
         const loginId = data.authorize.loginid;
         document.getElementById("display-id").innerText = "ID: " + loginId;
         
-        // Detect if current account is Demo or Real
-        isDemo = loginId.startsWith("VRTC");
-        const switchBtn = document.getElementById("btn-switch");
-        switchBtn.innerText = isDemo ? "To Real" : "To Demo";
+        // Update button text based on current account type
+        const isDemo = loginId.startsWith("VRTC");
+        document.getElementById("btn-switch").innerText = isDemo ? "To Real" : "To Demo";
         
+        // Subscribe to real-time balance
         ws.send(JSON.stringify({ balance: 1, subscribe: 1 }));
       }
 
@@ -215,7 +230,6 @@
     };
   }
 
-  // --- 3. BOT LOGIC ---
   const predictionList = [1,5,6,7,8,9];
   let currentPrediction = 0;
 
@@ -229,6 +243,7 @@
     }
 
     document.getElementById("loader-modal").style.display = "flex";
+    document.getElementById("loader-text").innerText = "Processing Trade...";
     runBtn.disabled = true;
 
     setTimeout(()=>{
