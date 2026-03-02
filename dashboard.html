@@ -9,21 +9,52 @@
 --primary:#1e40af;
 --success:#10b981;
 --danger:#ef4444;
---warning:#f59e0b;
 --bg:#f3f4f6;
 font-family:Segoe UI,Roboto;
 }
 body{margin:0;background:var(--bg);}
-header{background:var(--primary);color:white;display:flex;justify-content:space-between;align-items:center;padding:12px 20px;}
+header{
+background:var(--primary);
+color:white;
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:12px 20px;
+}
 .balance{font-weight:bold}
-button{padding:10px 14px;border:none;border-radius:8px;cursor:pointer;font-weight:bold;}
-.switch{background:var(--warning);color:white}
+button{
+padding:10px 14px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+font-weight:bold;
+}
+.switch{background:#f59e0b;color:white}
 .logout{background:var(--danger);color:white}
 .container{padding:25px;max-width:600px;margin:auto}
-.card{background:white;padding:25px;border-radius:15px;box-shadow:0 10px 25px rgba(0,0,0,0.05);margin-bottom:20px;}
-input{width:100%;padding:12px;margin-top:8px;margin-bottom:15px;border-radius:8px;border:1px solid #ddd;}
-.run{background:var(--primary);color:white;width:100%;}
-.log-item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;font-size:0.9rem;}
+.card{
+background:white;
+padding:25px;
+border-radius:15px;
+box-shadow:0 10px 25px rgba(0,0,0,0.05);
+margin-bottom:20px;
+}
+input{
+width:100%;
+padding:12px;
+margin-top:8px;
+margin-bottom:15px;
+border-radius:8px;
+border:1px solid #ddd;
+}
+.run{background:var(--primary);color:white;width:100%}
+.log-item{
+display:flex;
+justify-content:space-between;
+padding:8px 0;
+border-bottom:1px solid #eee;
+font-size:0.9rem;
+}
 </style>
 </head>
 <body>
@@ -35,7 +66,7 @@ input{width:100%;padding:12px;margin-top:8px;margin-bottom:15px;border-radius:8p
 </div>
 <div>
 <span class="balance" id="balance">0.00</span>
-<button class="switch" onclick="switchAccount()">Switch</button>
+<button class="switch" id="btnSwitch" onclick="switchAccount()">Switch</button>
 <button class="logout" onclick="logout()">Logout</button>
 </div>
 </header>
@@ -66,114 +97,113 @@ const APP_ID = 129457;
 let ws;
 let token1 = localStorage.getItem("deriv_token_1");
 let token2 = localStorage.getItem("deriv_token_2");
-let currentToken = token1;
+let currentToken = token1; // start with token1
 let currentLoginId = "";
 
-if(!currentToken) window.location.href="index.html";
+// Redirect if no token
+if(!currentToken){
+window.location.href="index.html";
+}
 
 connectWS(currentToken);
 
 function connectWS(token){
-  ws = new WebSocket("wss://ws.derivws.com/websockets/v3?app_id="+APP_ID);
+if(ws) ws.close();
 
-  ws.onopen = () => {
-      ws.send(JSON.stringify({authorize:token}));
-  };
+ws = new WebSocket("wss://ws.derivws.com/websockets/v3?app_id="+APP_ID);
 
-  ws.onmessage = (msg)=>{
-      const data = JSON.parse(msg.data);
+ws.onopen = () => {
+ws.send(JSON.stringify({authorize:token}));
+};
 
-      if(data.error){
-          alert("Authorization failed. Please login again.");
-          localStorage.clear();
-          window.location.href="index.html";
-      }
+ws.onmessage = (msg)=>{
+const data = JSON.parse(msg.data);
 
-      if(data.msg_type==="authorize"){
-          currentLoginId = data.authorize.loginid;
-          document.getElementById("loginid").innerText = currentLoginId;
+if(data.error){
+alert("Authorization failed. Please login again.");
+localStorage.clear();
+window.location.href="index.html";
+}
 
-          const isDemo = currentLoginId.startsWith("VRTC");
-          document.getElementById("accountType").innerText = isDemo ? "Demo Account" : "Real Account";
+if(data.msg_type==="authorize"){
+currentLoginId = data.authorize.loginid;
+document.getElementById("loginid").innerText = currentLoginId;
 
-          ws.send(JSON.stringify({balance:1,subscribe:1}));
-      }
+const isDemo = currentLoginId.startsWith("VRTC");
+document.getElementById("accountType").innerText = isDemo ? "Demo Account" : "Real Account";
 
-      if(data.msg_type==="balance"){
-          document.getElementById("balance").innerText = data.balance.balance+" "+data.balance.currency;
-      }
+document.getElementById("btnSwitch").innerText = isDemo ? "Switch to Real" : "Switch to Demo";
 
-      if(data.msg_type==="proposal"){
-          const stake = parseFloat(document.getElementById("stake").value);
-          const prediction = parseInt(document.getElementById("prediction").value);
-          ws.send(JSON.stringify({
-              buy:data.proposal.id,
-              price:stake
-          }));
-      }
+// Subscribe to balance updates
+ws.send(JSON.stringify({balance:1,subscribe:1}));
+}
 
-      if(data.msg_type==="buy"){
-          logTrade("Trade Opened",data.buy.contract_id);
-          ws.send(JSON.stringify({
-              proposal_open_contract:1,
-              contract_id:data.buy.contract_id,
-              subscribe:1
-          }));
-      }
+if(data.msg_type==="balance"){
+document.getElementById("balance").innerText =
+data.balance.balance+" "+data.balance.currency;
+}
 
-      if(data.msg_type==="proposal_open_contract"){
-          if(data.proposal_open_contract.is_sold){
-              const profit = data.proposal_open_contract.profit;
-              logTrade("Closed",profit);
-          }
-      }
+if(data.msg_type==="proposal"){
+ws.send(JSON.stringify({
+buy:data.proposal.id,
+price:parseFloat(document.getElementById("stake").value)
+}));
+}
 
-      if(data.msg_type==="account_list"){
-          const accounts = data.account_list;
-          const demo = accounts.find(a=>a.loginid.startsWith("VRTC"));
-          const real = accounts.find(a=>!a.loginid.startsWith("VRTC"));
-          const target = currentLoginId.startsWith("VRTC") ? real : demo;
-          if(target){
-              currentToken = target.token;
-              ws.send(JSON.stringify({authorize:currentToken}));
-          }
-      }
-  };
+if(data.msg_type==="buy"){
+logTrade("Trade Opened",data.buy.contract_id);
+ws.send(JSON.stringify({
+proposal_open_contract:1,
+contract_id:data.buy.contract_id,
+subscribe:1
+}));
+}
+
+if(data.msg_type==="proposal_open_contract"){
+if(data.proposal_open_contract.is_sold){
+const profit = data.proposal_open_contract.profit;
+logTrade("Closed",profit);
+}
+}
+
+};
 }
 
 function runBot(){
-  const stake = parseFloat(document.getElementById("stake").value);
-  const prediction = parseInt(document.getElementById("prediction").value);
+const stake = parseFloat(document.getElementById("stake").value);
+const prediction = parseInt(document.getElementById("prediction").value);
 
-  ws.send(JSON.stringify({
-      proposal:1,
-      amount:stake,
-      basis:"stake",
-      contract_type:"DIGITOVER",
-      currency:"USD",
-      symbol:"R_100",
-      duration:1,
-      duration_unit:"t",
-      barrier:prediction
-  }));
+ws.send(JSON.stringify({
+proposal:1,
+amount:stake,
+basis:"stake",
+contract_type:"DIGITOVER",
+currency:"USD",
+symbol:"R_100",
+duration:1,
+duration_unit:"t",
+barrier:prediction
+}));
 }
 
 function switchAccount(){
-  ws.send(JSON.stringify({account_list:1}));
+// Swap token
+currentToken = (currentToken===token1 && token2) ? token2 : token1;
+connectWS(currentToken);
 }
 
 function logout(){
-  localStorage.clear();
-  window.location.href="index.html";
+localStorage.clear();
+window.location.href="index.html";
 }
 
 function logTrade(type,value){
-  const log = document.getElementById("log");
-  const div = document.createElement("div");
-  div.className="log-item";
-  div.innerHTML=`<span>${type}</span><span>${value}</span>`;
-  if(log.innerText==="No trades yet.") log.innerHTML="";
-  log.prepend(div);
+const log = document.getElementById("log");
+const div = document.createElement("div");
+div.className="log-item";
+div.innerHTML=`<span>${type}</span><span>${value}</span>`;
+if(log.innerText==="No trades yet.") log.innerHTML="";
+log.prepend(div);
 }
 </script>
 
