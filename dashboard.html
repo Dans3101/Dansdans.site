@@ -1,270 +1,213 @@
 <!DOCTYPE html>
-<html lang="en" dir="auto" class="light">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dans Trading Dashboard</title>
-  <style>
-    :root {
-      --primary: #1e40af;
-      --success: #10b981;
-      --danger: #ef4444;
-      --warning: #f59e0b;
-      --bg-light: #f3f4f6;
-      --card-bg: #ffffff;
-      font-size: 16px;
-      font-family: "Segoe UI", Roboto, Helvetica, sans-serif;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dans Trading Dashboard</title>
 
-    body, html {
-      margin: 0; padding: 0; height: 100%;
-      background: var(--bg-light);
-      display: flex; flex-direction: column;
-    }
-
-    header {
-      background: var(--primary);
-      color: white;
-      padding: 12px 15px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-
-    .header-left h2 { margin: 0; font-size: 1.1rem; text-transform: uppercase; }
-    
-    .account-info { display: flex; align-items: center; gap: 8px; }
-
-    .balance-pill {
-      background: rgba(255, 255, 255, 0.2);
-      padding: 6px 12px;
-      border-radius: 50px;
-      font-weight: bold;
-      font-size: 0.85rem;
-      border: 1px solid rgba(255,255,255,0.3);
-    }
-
-    .btn-switch {
-      background: var(--warning);
-      color: white;
-      border: none;
-      padding: 6px 10px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.75rem;
-      font-weight: bold;
-      transition: 0.2s;
-    }
-
-    .btn-logout {
-      background: var(--danger);
-      color: white;
-      border: none;
-      padding: 6px 10px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.75rem;
-      font-weight: bold;
-    }
-
-    .container {
-      flex: 1; display: flex; flex-direction: column;
-      align-items: center; padding: 20px; gap: 20px;
-    }
-
-    .bot-card {
-      background: var(--card-bg);
-      border-radius: 20px;
-      padding: 25px;
-      width: 100%; max-width: 450px;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-      text-align: center;
-    }
-
-    .btn-action {
-      padding: 15px 20px;
-      background: var(--primary);
-      color: white;
-      border: none; border-radius: 12px;
-      font-weight: bold; cursor: pointer;
-      margin-top: 15px; width: 100%;
-    }
-
-    .trades-log {
-      max-width: 450px; width: 100%;
-      background: var(--card-bg);
-      border-radius: 15px; padding: 20px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-    }
-
-    .trade-item {
-      padding: 10px 0; border-bottom: 1px solid #eee;
-      display: flex; justify-content: space-between; font-size: 0.9rem;
-    }
-
-    #loader-modal {
-      display: none; position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.7); z-index: 9999;
-      justify-content: center; align-items: center; color: white;
-    }
-  </style>
+<style>
+:root{
+--primary:#1e40af;
+--success:#10b981;
+--danger:#ef4444;
+--bg:#f3f4f6;
+font-family:Segoe UI,Roboto;
+}
+body{margin:0;background:var(--bg);}
+header{
+background:var(--primary);
+color:white;
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:12px 20px;
+}
+.balance{font-weight:bold}
+button{
+padding:10px 14px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+font-weight:bold;
+}
+.switch{background:#f59e0b;color:white}
+.logout{background:var(--danger);color:white}
+.container{padding:25px;max-width:600px;margin:auto}
+.card{
+background:white;
+padding:25px;
+border-radius:15px;
+box-shadow:0 10px 25px rgba(0,0,0,0.05);
+margin-bottom:20px;
+}
+input{
+width:100%;
+padding:12px;
+margin-top:8px;
+margin-bottom:15px;
+border-radius:8px;
+border:1px solid #ddd;
+}
+.run{background:var(--primary);color:white;width:100%}
+.log-item{
+display:flex;
+justify-content:space-between;
+padding:8px 0;
+border-bottom:1px solid #eee;
+font-size:0.9rem;
+}
+</style>
 </head>
 <body>
 
 <header>
-  <div class="header-left">
-    <h2>Dans Trading</h2>
-    <div id="display-id" style="font-size: 0.7rem; opacity: 0.8;">ID: Connecting...</div>
-  </div>
-  <div class="account-info">
-    <div class="balance-pill" id="balance-display">Loading...</div>
-    <button class="btn-switch" id="btn-switch" onclick="switchAccount()">Switch</button>
-    <button class="btn-logout" onclick="logout()">Logout</button>
-  </div>
+<div>
+<div id="loginid">Connecting...</div>
+<div id="accountType" style="font-size:0.8rem;opacity:0.8;"></div>
+</div>
+<div>
+<span class="balance" id="balance">0.00</span>
+<button class="switch" onclick="switchAccount()">Switch</button>
+<button class="logout" onclick="logout()">Logout</button>
+</div>
 </header>
 
 <div class="container">
-  <div class="bot-card">
-    <h3 style="margin-top:0; color:var(--primary);">Digit Over Bot v2.0</h3>
-    <p style="font-size:0.85rem; color:#666;">Optimized for Volatility 100 (1s)</p>
-    
-    <div style="text-align:left; margin-bottom:10px;">
-        <label style="font-size:0.8rem; font-weight:bold;">Stake Amount:</label>
-        <input type="number" id="userStake" value="0.35" step="0.01" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd; box-sizing:border-box;">
-    </div>
 
-    <button class="btn-action" id="runBtn" onclick="runBot()">Run Bot</button>
-  </div>
+<div class="card">
+<h3>Digit Over Bot (Real Trading)</h3>
 
-  <div class="trades-log">
-    <h4 style="margin:0 0 15px 0;">Live Trade Log</h4>
-    <div id="tradesList" style="font-size:0.8rem; color:#888;">Waiting for first trade...</div>
-  </div>
+<label>Stake</label>
+<input type="number" id="stake" value="0.35" step="0.01">
+
+<label>Prediction (0-9)</label>
+<input type="number" id="prediction" value="5" min="0" max="9">
+
+<button class="run" onclick="runBot()">Run Trade</button>
 </div>
 
-<div id="loader-modal">
-  <div style="text-align:center;">
-    <h3>Connecting...</h3>
-    <p id="loader-text">Retrieving secure account data</p>
-  </div>
+<div class="card">
+<h4>Trade Log</h4>
+<div id="log">No trades yet.</div>
+</div>
+
 </div>
 
 <script>
-  const APP_ID = 129457;
-  let ws, accountBalance = 0;
-  let currentToken = "";
 
-  function logout() {
-      localStorage.clear();
-      window.location.href = "index.html";
-  }
+const APP_ID = 129457;
+let ws;
+let token = localStorage.getItem("deriv_token");
+let currentLoginId = "";
 
-  // Instant Switching Logic
-  function switchAccount() {
-      const t1 = localStorage.getItem("deriv_token_1");
-      const t2 = localStorage.getItem("deriv_token_2");
-      
-      // Determine the next token to use
-      const nextToken = (currentToken === t1) ? t2 : t1;
+if(!token){
+window.location.href="index.html";
+}
 
-      if (nextToken) {
-          if (ws) ws.close(); // Close current connection before swapping
-          document.getElementById("balance-display").innerText = "Switching...";
-          connectWS(nextToken);
-      } else {
-          // If the second token wasn't captured, re-authenticate once
-          window.location.href = `https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&l=EN&brand=deriv`;
-      }
-  }
+connectWS();
 
-  (function init() {
-      const params = new URLSearchParams(window.location.search);
-      const t1 = params.get("token1");
-      const t2 = params.get("token2");
+function connectWS(){
+ws = new WebSocket("wss://ws.derivws.com/websockets/v3?app_id="+APP_ID);
 
-      // On first login, capture all available tokens
-      if (t1) {
-          localStorage.setItem("deriv_token_1", t1);
-          if (t2) localStorage.setItem("deriv_token_2", t2);
-          window.location.href = window.location.origin + window.location.pathname;
-          return;
-      }
+ws.onopen = () => {
+ws.send(JSON.stringify({authorize:token}));
+};
 
-      const savedToken = localStorage.getItem("deriv_token_1");
-      if (savedToken) {
-          connectWS(savedToken);
-      } else {
-          window.location.href = "index.html";
-      }
-  })();
+ws.onmessage = (msg)=>{
+const data = JSON.parse(msg.data);
 
-  function connectWS(token){
-    currentToken = token;
-    ws = new WebSocket("wss://ws.derivws.com/websockets/v3?app_id=" + APP_ID);
-    
-    ws.onopen = () => {
-      ws.send(JSON.stringify({ authorize: token }));
-    };
+if(data.msg_type==="authorize"){
+currentLoginId = data.authorize.loginid;
+document.getElementById("loginid").innerText = currentLoginId;
 
-    ws.onmessage = (msg) => {
-      const data = JSON.parse(msg.data);
+const isDemo = currentLoginId.startsWith("VRTC");
+document.getElementById("accountType").innerText = isDemo ? "Demo Account" : "Real Account";
 
-      if(data.msg_type === "authorize" && data.authorize){
-        const loginId = data.authorize.loginid;
-        document.getElementById("display-id").innerText = "ID: " + loginId;
-        
-        // Update button text based on current account type
-        const isDemo = loginId.startsWith("VRTC");
-        document.getElementById("btn-switch").innerText = isDemo ? "To Real" : "To Demo";
-        
-        // Subscribe to real-time balance
-        ws.send(JSON.stringify({ balance: 1, subscribe: 1 }));
-      }
+ws.send(JSON.stringify({balance:1,subscribe:1}));
+}
 
-      if(data.msg_type === "balance"){
-        accountBalance = data.balance.balance;
-        document.getElementById("balance-display").innerText = accountBalance + " " + data.balance.currency;
-      }
-    };
-  }
+if(data.msg_type==="balance"){
+document.getElementById("balance").innerText =
+data.balance.balance+" "+data.balance.currency;
+}
 
-  const predictionList = [1,5,6,7,8,9];
-  let currentPrediction = 0;
+if(data.msg_type==="proposal"){
+ws.send(JSON.stringify({
+buy:data.proposal.id,
+price:parseFloat(document.getElementById("stake").value)
+}));
+}
 
-  function runBot() {
-    const stake = parseFloat(document.getElementById("userStake").value);
-    const runBtn = document.getElementById("runBtn");
-    
-    if(accountBalance < stake) {
-        alert("Insufficient balance!");
-        return;
-    }
+if(data.msg_type==="buy"){
+logTrade("Trade Opened",data.buy.contract_id);
+ws.send(JSON.stringify({
+proposal_open_contract:1,
+contract_id:data.buy.contract_id,
+subscribe:1
+}));
+}
 
-    document.getElementById("loader-modal").style.display = "flex";
-    document.getElementById("loader-text").innerText = "Processing Trade...";
-    runBtn.disabled = true;
+if(data.msg_type==="proposal_open_contract"){
+if(data.proposal_open_contract.is_sold){
+const profit = data.proposal_open_contract.profit;
+logTrade("Closed",profit);
+}
+}
 
-    setTimeout(()=>{
-      document.getElementById("loader-modal").style.display = "none";
-      runBtn.disabled = false;
+if(data.msg_type==="account_list"){
+const accounts = data.account_list;
 
-      const prediction = predictionList[currentPrediction];
-      currentPrediction = (currentPrediction + 1) % predictionList.length;
-      
-      const isWin = Math.random() > 0.45;
-      const profit = isWin ? (stake * 0.95) : -stake;
+const demo = accounts.find(a=>a.loginid.startsWith("VRTC"));
+const real = accounts.find(a=>!a.loginid.startsWith("VRTC"));
 
-      const log = document.getElementById("tradesList");
-      const item = document.createElement("div");
-      item.className = "trade-item";
-      item.innerHTML = `<span>Pred: ${prediction}</span> <strong style="color:${isWin ? 'var(--success)':'var(--danger)'}">${isWin ? 'WIN' : 'LOSS'}</strong> <span>$${profit.toFixed(2)}</span>`;
-      
-      if(log.innerText.includes("Waiting")) log.innerHTML = "";
-      log.prepend(item);
-    }, 1200);
-  }
+const target = currentLoginId.startsWith("VRTC") ? real : demo;
+
+if(target){
+ws.send(JSON.stringify({authorize:target.token}));
+}
+}
+
+};
+
+}
+
+function runBot(){
+
+const stake = parseFloat(document.getElementById("stake").value);
+const prediction = document.getElementById("prediction").value;
+
+ws.send(JSON.stringify({
+proposal:1,
+amount:stake,
+basis:"stake",
+contract_type:"DIGITOVER",
+currency:"USD",
+symbol:"R_100",
+duration:1,
+duration_unit:"t",
+barrier:prediction
+}));
+
+}
+
+function switchAccount(){
+ws.send(JSON.stringify({account_list:1}));
+}
+
+function logout(){
+localStorage.clear();
+window.location.href="index.html";
+}
+
+function logTrade(type,value){
+const log = document.getElementById("log");
+const div = document.createElement("div");
+div.className="log-item";
+div.innerHTML=`<span>${type}</span><span>${value}</span>`;
+if(log.innerText==="No trades yet.") log.innerHTML="";
+log.prepend(div);
+}
+
 </script>
 
 </body>
