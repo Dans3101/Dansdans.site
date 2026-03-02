@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dans Trading Dashboard</title>
-
 <style>
 :root{
 --primary:#1e40af;
@@ -67,7 +66,7 @@ font-size:0.9rem;
 </div>
 <div>
 <span class="balance" id="balance">0.00</span>
-<button class="switch" onclick="switchAccount()">Switch</button>
+<button class="switch" id="btnSwitch" onclick="switchAccount()">Switch</button>
 <button class="logout" onclick="logout()">Logout</button>
 </div>
 </header>
@@ -75,7 +74,7 @@ font-size:0.9rem;
 <div class="container">
 
 <div class="card">
-<h3>Digit Over Bot (Real Trading)</h3>
+<h3>Digit Over Bot</h3>
 
 <label>Stake</label>
 <input type="number" id="stake" value="0.35" step="0.01">
@@ -94,19 +93,23 @@ font-size:0.9rem;
 </div>
 
 <script>
-
 const APP_ID = 129457;
 let ws;
-let token = localStorage.getItem("deriv_token");
+let token1 = localStorage.getItem("deriv_token_1");
+let token2 = localStorage.getItem("deriv_token_2");
+let currentToken = token1; // start with token1
 let currentLoginId = "";
 
-if(!token){
+// Redirect if no token
+if(!currentToken){
 window.location.href="index.html";
 }
 
-connectWS();
+connectWS(currentToken);
 
-function connectWS(){
+function connectWS(token){
+if(ws) ws.close();
+
 ws = new WebSocket("wss://ws.derivws.com/websockets/v3?app_id="+APP_ID);
 
 ws.onopen = () => {
@@ -116,10 +119,10 @@ ws.send(JSON.stringify({authorize:token}));
 ws.onmessage = (msg)=>{
 const data = JSON.parse(msg.data);
 
-if (data.error) {
-    alert("Authorization failed. Please login again.");
-    localStorage.clear();
-    window.location.href = "index.html";
+if(data.error){
+alert("Authorization failed. Please login again.");
+localStorage.clear();
+window.location.href="index.html";
 }
 
 if(data.msg_type==="authorize"){
@@ -129,6 +132,9 @@ document.getElementById("loginid").innerText = currentLoginId;
 const isDemo = currentLoginId.startsWith("VRTC");
 document.getElementById("accountType").innerText = isDemo ? "Demo Account" : "Real Account";
 
+document.getElementById("btnSwitch").innerText = isDemo ? "Switch to Real" : "Switch to Demo";
+
+// Subscribe to balance updates
 ws.send(JSON.stringify({balance:1,subscribe:1}));
 }
 
@@ -160,27 +166,12 @@ logTrade("Closed",profit);
 }
 }
 
-if(data.msg_type==="account_list"){
-const accounts = data.account_list;
-
-const demo = accounts.find(a=>a.loginid.startsWith("VRTC"));
-const real = accounts.find(a=>!a.loginid.startsWith("VRTC"));
-
-const target = currentLoginId.startsWith("VRTC") ? real : demo;
-
-if(target){
-ws.send(JSON.stringify({authorize:target.token}));
-}
-}
-
 };
-
 }
 
 function runBot(){
-
 const stake = parseFloat(document.getElementById("stake").value);
-const prediction = document.getElementById("prediction").value;
+const prediction = parseInt(document.getElementById("prediction").value);
 
 ws.send(JSON.stringify({
 proposal:1,
@@ -193,11 +184,12 @@ duration:1,
 duration_unit:"t",
 barrier:prediction
 }));
-
 }
 
 function switchAccount(){
-ws.send(JSON.stringify({account_list:1}));
+// Swap token
+currentToken = (currentToken===token1 && token2) ? token2 : token1;
+connectWS(currentToken);
 }
 
 function logout(){
@@ -213,7 +205,6 @@ div.innerHTML=`<span>${type}</span><span>${value}</span>`;
 if(log.innerText==="No trades yet.") log.innerHTML="";
 log.prepend(div);
 }
-
 </script>
 
 </body>
