@@ -3,69 +3,91 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dans Trading Bots | Login</title>
+<title>Dans Trading | Secure Login</title>
+
 <style>
-:root { --primary:#1e40af; --bg:#f3f4f6; }
-body { margin:0; font-family:-apple-system,sans-serif; background:var(--bg); display:flex; flex-direction:column; min-height:100vh; }
-.navbar { background:white; padding:15px 5%; display:flex; justify-content:space-between; box-shadow:0 2px 10px rgba(0,0,0,0.05);}
-.main-hero { flex:1; display:flex; justify-content:center; align-items:center; padding:20px; }
-.card { background:white; max-width:400px; width:100%; padding:40px; border-radius:20px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); text-align:center;}
-h1 { font-size:28px; margin-bottom:10px; color:#111827;}
-.btn-connect { width:100%; padding:16px; background:var(--primary); color:white; border:none; border-radius:12px; font-weight:600; cursor:pointer; font-size:18px; transition:0.3s; }
-.btn-connect:hover { opacity:0.9; transform:translateY(-2px);}
-#loader-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:white; display:flex; justify-content:center; align-items:center; z-index:9999;}
+:root{
+--primary:#1e40af;
+--bg:#f3f4f6;
+--card:#ffffff;
+--success:#10b981;
+}
+body{
+margin:0;
+font-family:Segoe UI,Roboto;
+background:var(--bg);
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+.card{
+background:var(--card);
+padding:40px;
+border-radius:20px;
+box-shadow:0 15px 40px rgba(0,0,0,0.1);
+width:350px;
+text-align:center;
+}
+h2{margin-bottom:10px;}
+p{color:#6b7280;font-size:0.9rem;}
+button{
+width:100%;
+padding:14px;
+margin-top:15px;
+border:none;
+border-radius:12px;
+font-weight:bold;
+cursor:pointer;
+font-size:15px;
+}
+.demo{background:#10b981;color:white;}
+.real{background:#1e40af;color:white;}
 </style>
 </head>
 <body>
 
-<div id="loader-overlay"><p>Authenticating session...</p></div>
+<div class="card">
+<h2>Dans Trading Bot</h2>
+<p>Login securely to your Deriv account</p>
 
-<nav class="navbar">
-  <div style="font-weight:800; color: var(--primary); letter-spacing:1px;">DANS TRADING</div>
-</nav>
+<button class="demo" onclick="loginDemo()">Login Demo Account</button>
+<button class="real" onclick="loginReal()">Login Real Account</button>
 
-<main class="main-hero">
-  <div class="card">
-    <h1>Welcome Back</h1>
-    <p style="color:#6b7280; margin-bottom:30px;">Login once to securely connect your Real and Demo accounts.</p>
-    <button class="btn-connect" onclick="connectDeriv()">Login with Deriv</button>
-  </div>
-</main>
+</div>
 
 <script>
 const APP_ID = 129457;
 
-// Capture OAuth tokens and redirect safely
-(function captureTokens() {
-    const params = new URLSearchParams(window.location.search);
-    const t1 = params.get("token1");
-    const t2 = params.get("token2");
+// If already logged in → go dashboard
+if(localStorage.getItem("deriv_token")){
+window.location.href="dashboard.html";
+}
 
-    if(t1){
-        localStorage.setItem("deriv_token_1", t1);
-        if(t2) localStorage.setItem("deriv_token_2", t2);
+// OAuth redirect
+function loginDemo(){
+const redirect = window.location.origin + "/Dansdans.site/index.html?type=demo";
+window.location.href=`https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&redirect_uri=${encodeURIComponent(redirect)}&scope=read,trade`;
+}
 
-        // Clean URL to prevent loop
-        window.history.replaceState({}, document.title, "index.html");
+function loginReal(){
+const redirect = window.location.origin + "/Dansdans.site/index.html?type=real";
+window.location.href=`https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&redirect_uri=${encodeURIComponent(redirect)}&scope=read,trade`;
+}
 
-        window.location.href = "dashboard.html";
-        return;
-    }
+// Capture token after OAuth
+const params = new URLSearchParams(window.location.search);
+const token = params.get("token1");
 
-    // Check existing session
-    if(localStorage.getItem("deriv_token_1")){
-        window.location.href = "dashboard.html";
-    } else {
-        document.getElementById("loader-overlay").style.display = "none";
-    }
-})();
+if(token){
+localStorage.setItem("deriv_token", token);
 
-// Start OAuth login
-function connectDeriv(){
-    const redirectUri = window.location.origin + "/Dansdans.site/index.html";
-    const oauthUrl = `https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=read,trade`;
-    window.location.href = oauthUrl;
+// Clean URL to prevent blinking
+window.history.replaceState({}, document.title, "index.html");
+
+window.location.href="dashboard.html";
 }
 </script>
+
 </body>
 </html>
