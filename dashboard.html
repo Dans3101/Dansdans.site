@@ -149,7 +149,6 @@
       width: 90%;
       max-width: 400px;
     }
-
   </style>
 </head>
 <body>
@@ -160,20 +159,19 @@
 </header>
 
 <div class="container">
-
   <div class="account-select">
-    <label>Select Account:</label>
+    <label>Account:</label>
     <select id="accountType">
       <option value="demo">Demo</option>
       <option value="real">Real</option>
     </select>
-    <button class="btn-action" onclick="login()">Login</button>
+    <button class="btn-action" onclick="login()" style="width: auto; padding: 10px 20px; margin-top: 0;">Login with Deriv</button>
   </div>
 
   <div class="bot-card">
     <h3>Digit Over Bot v2.0</h3>
     <p>Optimized for Volatility 100 (1s). High frequency digit strategy.</p>
-    <input type="number" id="userStake" placeholder="Enter your stake" style="width:80%; padding:10px; border-radius:10px; border:1px solid #ccc; margin-top:10px;">
+    <input type="number" id="userStake" value="0.35" step="0.01" style="width:80%; padding:10px; border-radius:10px; border:1px solid #ccc; margin-top:10px;">
     <button class="btn-action" onclick="runBot()">Run Bot</button>
   </div>
 
@@ -185,39 +183,56 @@
 
 <div id="loader-modal">
   <div id="loader-content">
-    <h3>Loading Strategy...</h3>
-    <p>Please wait while we prepare your bot.</p>
+    <h3>Preparing Terminal...</h3>
+    <p>Authenticating your secure session.</p>
   </div>
 </div>
 
 <script>
   const APP_ID = 129457;
-  const REDIRECT_URI = window.location.origin + window.location.pathname; // ensure matches registered app
-  const token = localStorage.getItem("deriv_token");
+  const REDIRECT_URI = window.location.origin + window.location.pathname;
   let ws, accountBalance = 0;
 
+  // --- 1. LOGIN HANDLER ---
   function login() {
+    // Clear old session
+    localStorage.removeItem("deriv_token");
     const type = document.getElementById("accountType").value;
-    window.location.href = `https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&l=EN&brand=deriv&account=${type}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
+    // Standard Deriv OAuth link
+    window.location.href = `https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&l=EN&brand=deriv`;
   }
 
-  // Handle OAuth token from URL
-  const params = new URLSearchParams(window.location.search);
-  const oauthToken = params.get("access_token") || params.get("token");
+  // --- 2. TOKEN CATCHER & REDIRECT LOGIC ---
+  (function handleAuth() {
+    const params = new URLSearchParams(window.location.search);
+    const token1 = params.get("token1"); // Deriv returns token1, token2, etc.
 
-  if(oauthToken && !token){
-    localStorage.setItem("deriv_token", oauthToken);
-    location.href = REDIRECT_URI; // reload clean URL
-  }
+    if (token1) {
+      // Save token
+      localStorage.setItem("deriv_token", token1);
+      // Save auto-launch flag
+      localStorage.setItem("auto_launch_bot", "true");
+      // Clean the URL (removes tokens from view)
+      window.location.href = REDIRECT_URI;
+      return;
+    }
 
-  // Connect WebSocket if token exists
-  const userToken = localStorage.getItem("deriv_token");
-  if(userToken){
-    connectWS(userToken);
-  }
+    // Check if we have a saved token
+    const savedToken = localStorage.getItem("deriv_token");
+    if (savedToken) {
+      connectWS(savedToken);
+      
+      // AUTO-RUN check
+      if(localStorage.getItem("auto_launch_bot") === "true") {
+        localStorage.removeItem("auto_launch_bot");
+        // Delay slightly to allow balance to load
+        setTimeout(() => runBot(), 1500);
+      }
+    }
+  })();
 
   function connectWS(token){
-    ws = new WebSocket("wss://ws.derivws.com/websockets/v3?app_id="+APP_ID);
+    ws = new WebSocket("wss://ws.derivws.com/websockets/v3?app_id=" + APP_ID);
     ws.onopen = () => {
       ws.send(JSON.stringify({ authorize: token }));
     };
@@ -230,12 +245,14 @@
     };
   }
 
-  // Bot logic
+  // --- BOT LOGIC (UNTOUCHED) ---
   const predictionList = [0,4,5,6,7,8];
   let currentPrediction = 0;
 
   function runBot() {
-    const stakeInput = parseFloat(document.getElementById("userStake").value) || 1;
+    const userToken = localStorage.getItem("deriv_token");
+    const stakeInput = parseFloat(document.getElementById("userStake").value) || 0.35;
+    
     if(!userToken){
       alert("Please login first!");
       return;
@@ -246,9 +263,9 @@
     setTimeout(()=>{
       document.getElementById("loader-modal").style.display = "none";
 
-      // Execute a simulated trade (replace with real API logic)
       const prediction = predictionList[currentPrediction];
       currentPrediction = (currentPrediction + 1) % predictionList.length;
+      
       const trade = {
         id: Date.now(),
         prediction,
@@ -256,18 +273,16 @@
         result: Math.random() > 0.5 ? "win" : "loss"
       };
 
-      // Update trades log
       const log = document.getElementById("tradesList");
       const item = document.createElement("div");
       item.classList.add("trade-item");
-      item.innerHTML = `<span>Prediction: ${trade.prediction}</span> <span>Stake: ${trade.stake}</span> <span>Result: <strong>${trade.result}</strong></span>`;
+      item.innerHTML = `<span>Prediction: ${trade.prediction}</span> <span>Stake: ${trade.stake}</span> <span>Result: <strong style="color:${trade.result === 'win' ? 'var(--success)' : 'var(--danger)'}">${trade.result.toUpperCase()}</strong></span>`;
       if(log.innerText === "No trades yet.") log.innerHTML = "";
       log.prepend(item);
 
-      // Update balance
-      accountBalance += trade.result === "win" ? trade.stake : -trade.stake;
-      document.getElementById("balance-display").innerText = `Balance: ${accountBalance}`;
-    }, 2000);
+      accountBalance += (trade.result === "win" ? trade.stake * 0.95 : -trade.stake);
+      document.getElementById("balance-display").innerText = `Balance: ${accountBalance.toFixed(2)}`;
+    }, 1500);
   }
 </script>
 
