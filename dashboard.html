@@ -116,6 +116,12 @@ ws.send(JSON.stringify({authorize:token}));
 ws.onmessage = (msg)=>{
 const data = JSON.parse(msg.data);
 
+if (data.error) {
+    alert("Authorization failed. Please login again.");
+    localStorage.clear();
+    window.location.href = "index.html";
+}
+
 if(data.msg_type==="authorize"){
 currentLoginId = data.authorize.loginid;
 document.getElementById("loginid").innerText = currentLoginId;
