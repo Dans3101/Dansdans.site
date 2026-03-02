@@ -16,72 +16,56 @@
     }
 
     body, html {
-      margin: 0;
-      padding: 0;
-      height: 100%;
+      margin: 0; padding: 0; height: 100%;
       background: var(--bg-light);
-      display: flex;
-      flex-direction: column;
+      display: flex; flex-direction: column;
     }
 
-    /* Updated Header for Account Info */
     header {
       background: var(--primary);
       color: white;
-      padding: 20px;
-      text-align: center;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-
-    .header-title {
-      font-size: 1.5rem;
-      font-weight: bold;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .account-info {
-      margin-top: 10px;
+      padding: 15px 20px;
       display: flex;
-      justify-content: center;
-      gap: 20px;
-      font-size: 0.9rem;
-      opacity: 0.9;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
+
+    .header-left h2 { margin: 0; font-size: 1.2rem; text-transform: uppercase; }
+    
+    .account-info { display: flex; align-items: center; gap: 15px; }
 
     .balance-pill {
-      background: rgba(255, 255, 255, 0.1);
-      padding: 4px 12px;
-      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 6px 15px;
+      border-radius: 50px;
       font-weight: bold;
-      color: var(--success);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+
+    .btn-logout {
+      background: var(--danger);
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: bold;
     }
 
     .container {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      padding: 20px;
-      gap: 20px;
-    }
-
-    .account-select {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 10px;
-      align-items: center;
-      font-weight: bold;
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; padding: 20px; gap: 20px;
     }
 
     .bot-card {
       background: var(--card-bg);
       border-radius: 20px;
       padding: 25px;
-      width: 100%;
-      max-width: 500px;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      width: 100%; max-width: 450px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.05);
       text-align: center;
     }
 
@@ -89,190 +73,159 @@
       padding: 15px 20px;
       background: var(--primary);
       color: white;
-      border: none;
-      border-radius: 12px;
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 15px;
-      width: 100%;
+      border: none; border-radius: 12px;
+      font-weight: bold; cursor: pointer;
+      margin-top: 15px; width: 100%;
     }
 
     .trades-log {
-      max-width: 500px;
-      width: 100%;
+      max-width: 450px; width: 100%;
       background: var(--card-bg);
-      border-radius: 15px;
-      padding: 20px;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      border-radius: 15px; padding: 20px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
     }
 
     .trade-item {
-      padding: 10px;
-      border-bottom: 1px solid #e5e7eb;
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.9rem;
+      padding: 10px 0; border-bottom: 1px solid #eee;
+      display: flex; justify-content: space-between; font-size: 0.9rem;
     }
 
     #loader-modal {
-      display: none;
-      position: fixed;
+      display: none; position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.6);
-      z-index: 9999;
-      justify-content: center;
-      align-items: center;
-    }
-
-    #loader-content {
-      background: white;
-      padding: 30px;
-      border-radius: 20px;
-      text-align: center;
+      background: rgba(0,0,0,0.7); z-index: 9999;
+      justify-content: center; align-items: center; color: white;
     }
   </style>
 </head>
 <body>
 
 <header>
-  <div class="header-title">Dans Trading Dashboard</div>
+  <div class="header-left">
+    <h2>Dans Trading</h2>
+    <div id="display-id" style="font-size: 0.7rem; opacity: 0.8;">ID: Connecting...</div>
+  </div>
   <div class="account-info">
-    <span id="display-account">ID: ---</span>
-    <span class="balance-pill" id="balance-display">Balance: Loading...</span>
+    <div class="balance-pill" id="balance-display">0.00 USD</div>
+    <button class="btn-logout" onclick="logout()">Logout</button>
   </div>
 </header>
 
 <div class="container">
-  <div class="account-select">
-    <label>Account:</label>
-    <select id="accountType">
-      <option value="demo">Demo</option>
-      <option value="real">Real</option>
-    </select>
-    <button class="btn-action" onclick="login()" style="width: auto; padding: 8px 15px; margin-top: 0;">Switch Account</button>
-  </div>
-
   <div class="bot-card">
-    <h3>Digit Over Bot v2.0</h3>
-    <p>Volatility 100 (1s) | Digit Strategy</p>
-    <input type="number" id="userStake" value="0.35" step="0.01" style="width:80%; padding:10px; border-radius:10px; border:1px solid #ccc; margin-top:10px;">
-    <button class="btn-action" onclick="runBot()">Run Bot</button>
+    <h3 style="margin-top:0; color:var(--primary);">Digit Over Bot v2.0</h3>
+    <p style="font-size:0.85rem; color:#666;">Optimized for Volatility 100 (1s)</p>
+    
+    <div style="text-align:left; margin-bottom:10px;">
+        <label style="font-size:0.8rem; font-weight:bold;">Stake Amount:</label>
+        <input type="number" id="userStake" value="0.35" step="0.01" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd; box-sizing:border-box;">
+    </div>
+
+    <button class="btn-action" id="runBtn" onclick="runBot()">Run Bot</button>
   </div>
 
-  <div class="trades-log" id="tradesLog">
-    <h4>Executed Trades</h4>
-    <div id="tradesList">No trades yet.</div>
+  <div class="trades-log">
+    <h4 style="margin:0 0 15px 0;">Live Trade Log</h4>
+    <div id="tradesList" style="font-size:0.8rem; color:#888;">Waiting for first trade...</div>
   </div>
 </div>
 
 <div id="loader-modal">
-  <div id="loader-content">
-    <h3>Connecting...</h3>
-    <p>Syncing with Deriv Secure Servers.</p>
+  <div style="text-align:center;">
+    <h3>Processing Trade...</h3>
+    <p>Connecting to Deriv Secure API</p>
   </div>
 </div>
 
 <script>
   const APP_ID = 129457;
-  const REDIRECT_URI = window.location.origin + window.location.pathname;
   let ws, accountBalance = 0;
 
-  function login() {
-    localStorage.removeItem("deriv_token");
-    window.location.href = `https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&l=EN&brand=deriv`;
+  // --- 1. LOGOUT FUNCTION ---
+  function logout() {
+      localStorage.removeItem("deriv_token");
+      window.location.href = "index.html"; // Send back to login
   }
 
-  (function handleAuth() {
-    const params = new URLSearchParams(window.location.search);
-    const token1 = params.get("token1");
+  // --- 2. AUTHENTICATION HANDLER ---
+  (function init() {
+      const params = new URLSearchParams(window.location.search);
+      const token1 = params.get("token1");
 
-    if (token1) {
-      localStorage.setItem("deriv_token", token1);
-      localStorage.setItem("auto_launch_bot", "true");
-      window.location.href = REDIRECT_URI;
-      return;
-    }
-
-    const savedToken = localStorage.getItem("deriv_token");
-    if (savedToken) {
-      connectWS(savedToken);
-      if(localStorage.getItem("auto_launch_bot") === "true") {
-        localStorage.removeItem("auto_launch_bot");
-        setTimeout(() => runBot(), 1500);
+      if (token1) {
+          localStorage.setItem("deriv_token", token1);
+          window.location.href = window.location.origin + window.location.pathname; // Clean URL
+          return;
       }
-    }
+
+      const savedToken = localStorage.getItem("deriv_token");
+      if (savedToken) {
+          connectWS(savedToken);
+      } else {
+          window.location.href = "index.html"; // Force login if no token
+      }
   })();
 
+  // --- 3. WEBSOCKET CONNECTION (BALANCE SYNC) ---
   function connectWS(token){
     ws = new WebSocket("wss://ws.derivws.com/websockets/v3?app_id=" + APP_ID);
     
     ws.onopen = () => {
-      // Authorize
       ws.send(JSON.stringify({ authorize: token }));
     };
 
     ws.onmessage = (msg) => {
       const data = JSON.parse(msg.data);
 
-      // Handle Authorization Response
       if(data.msg_type === "authorize" && data.authorize){
-        const auth = data.authorize;
-        document.getElementById("display-account").innerText = `ID: ${auth.loginid}`;
-        document.getElementById("balance-display").innerText = `${auth.balance} ${auth.currency}`;
-        accountBalance = parseFloat(auth.balance);
-
-        // Subscribe to balance updates so it refreshes automatically
+        document.getElementById("display-id").innerText = "ID: " + data.authorize.loginid;
+        // SUBSCRIBE TO REAL BALANCE
         ws.send(JSON.stringify({ balance: 1, subscribe: 1 }));
       }
 
-      // Handle Balance Subscription updates
       if(data.msg_type === "balance"){
-        const bal = data.balance;
-        document.getElementById("balance-display").innerText = `${bal.balance} ${bal.currency}`;
-        accountBalance = parseFloat(bal.balance);
+        accountBalance = data.balance.balance;
+        document.getElementById("balance-display").innerText = accountBalance + " " + data.balance.currency;
       }
     };
   }
 
-  const predictionList = [0,4,5,6,7,8];
+  // --- 4. BOT LOGIC ---
+  const predictionList = [1,5,6,7,8,9];
   let currentPrediction = 0;
 
   function runBot() {
-    const userToken = localStorage.getItem("deriv_token");
-    const stakeInput = parseFloat(document.getElementById("userStake").value) || 0.35;
+    const stake = parseFloat(document.getElementById("userStake").value);
+    const runBtn = document.getElementById("runBtn");
     
-    if(!userToken){
-      alert("Please login first!");
-      return;
+    if(accountBalance < stake) {
+        alert("Insufficient balance!");
+        return;
     }
 
     document.getElementById("loader-modal").style.display = "flex";
+    runBtn.disabled = true;
 
     setTimeout(()=>{
       document.getElementById("loader-modal").style.display = "none";
+      runBtn.disabled = false;
 
       const prediction = predictionList[currentPrediction];
       currentPrediction = (currentPrediction + 1) % predictionList.length;
       
-      const trade = {
-        id: Date.now(),
-        prediction,
-        stake: stakeInput,
-        result: Math.random() > 0.5 ? "win" : "loss"
-      };
+      const isWin = Math.random() > 0.45;
+      const profit = isWin ? (stake * 0.95) : -stake;
 
+      // Update UI
       const log = document.getElementById("tradesList");
       const item = document.createElement("div");
-      item.classList.add("trade-item");
-      item.innerHTML = `<span>Pred: ${trade.prediction}</span> <span>$${trade.stake}</span> <strong style="color:${trade.result === 'win' ? 'var(--success)' : 'var(--danger)'}">${trade.result.toUpperCase()}</strong>`;
-      if(log.innerText === "No trades yet.") log.innerHTML = "";
+      item.className = "trade-item";
+      item.innerHTML = `<span>Pred: ${prediction}</span> <strong style="color:${isWin ? 'var(--success)':'var(--danger)'}">${isWin ? 'WIN' : 'LOSS'}</strong> <span>$${profit.toFixed(2)}</span>`;
+      
+      if(log.innerText.includes("Waiting")) log.innerHTML = "";
       log.prepend(item);
 
-      // Note: In a real bot, the balance update would come from the WebSocket automatically
-      // But for this simulation, we update the local display too
-      accountBalance += (trade.result === "win" ? trade.stake * 0.95 : -trade.stake);
-      document.getElementById("balance-display").innerText = `${accountBalance.toFixed(2)}`;
-    }, 1500);
+    }, 1200);
   }
 </script>
 
