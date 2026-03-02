@@ -4,57 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dans Trading Dashboard</title>
-
 <style>
 :root{
---primary:#1e40af;
---success:#10b981;
---danger:#ef4444;
---bg:#f3f4f6;
-font-family:Segoe UI,Roboto;
+--primary:#1e40af; --success:#10b981; --danger:#ef4444; --bg:#f3f4f6; font-family:Segoe UI,Roboto;
 }
 body{margin:0;background:var(--bg);}
-header{
-background:var(--primary);
-color:white;
-display:flex;
-justify-content:space-between;
-align-items:center;
-padding:12px 20px;
-}
-.balance{font-weight:bold}
-button{
-padding:8px 12px;
-border:none;
-border-radius:8px;
-cursor:pointer;
-font-weight:bold;
-}
-.logout{background:var(--danger);color:white}
-.container{padding:25px;max-width:600px;margin:auto}
-.card{
-background:white;
-padding:25px;
-border-radius:15px;
-box-shadow:0 10px 25px rgba(0,0,0,0.05);
-margin-bottom:20px;
-}
-input{
-width:100%;
-padding:12px;
-margin-top:8px;
-margin-bottom:15px;
-border-radius:8px;
-border:1px solid #ddd;
-}
-.run{background:var(--primary);color:white;width:100%}
-.log-item{
-display:flex;
-justify-content:space-between;
-padding:8px 0;
-border-bottom:1px solid #eee;
-font-size:0.9rem;
-}
+header{background:var(--primary); color:white; display:flex; justify-content:space-between; align-items:center; padding:12px 20px;}
+header select{border-radius:8px; padding:6px; font-weight:bold; margin-right:10px;}
+.balance{font-weight:bold; margin-right:10px;}
+button{padding:8px 12px;border:none;border-radius:8px;cursor:pointer;font-weight:bold;}
+.logout{background:var(--danger);color:white;}
+.container{padding:25px;max-width:600px;margin:auto;}
+.card{background:white;padding:25px;border-radius:15px;box-shadow:0 10px 25px rgba(0,0,0,0.05);margin-bottom:20px;}
+input{width:100%;padding:12px;margin-top:8px;margin-bottom:15px;border-radius:8px;border:1px solid #ddd;}
+.run{background:var(--primary);color:white;width:100%;}
+.log-item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;font-size:0.9rem;}
 </style>
 </head>
 <body>
@@ -66,127 +30,126 @@ font-size:0.9rem;
 </div>
 <div>
 <span class="balance" id="balance">0.00</span>
+<select id="accountSelector" onchange="switchAccount()">
+<option value="demo">Demo Account</option>
+<option value="real">Real Account</option>
+</select>
 <button class="logout" onclick="logout()">Logout</button>
 </div>
 </header>
 
 <div class="container">
-
 <div class="card">
 <h3>Digit Over Bot</h3>
-
-<label>Stake</label>
+<label>Stake (USD)</label>
 <input type="number" id="stake" value="0.35" step="0.01">
-
 <label>Prediction (0-9)</label>
 <input type="number" id="prediction" value="5" min="0" max="9">
-
-<button class="run" onclick="runTrade()">Execute Trade</button>
+<button class="run" onclick="runBot()">Run Trade</button>
 </div>
 
 <div class="card">
 <h4>Trade Log</h4>
 <div id="log">No trades yet.</div>
 </div>
-
 </div>
 
 <script>
-
 const APP_ID = 129457;
-const token = localStorage.getItem("deriv_token");
-
-if(!token){
-window.location.href="index.html";
-}
-
 let ws;
+let activeToken;
+let currentLoginId="";
 
-connect();
+// Switch account based on dropdown
+function switchAccount(){
+    const sel = document.getElementById("accountSelector").value;
+    activeToken = sel==="demo"? localStorage.getItem("deriv_demo_token") : localStorage.getItem("deriv_real_token");
 
-function connect(){
-ws = new WebSocket("wss://ws.derivws.com/websockets/v3?app_id="+APP_ID);
-
-ws.onopen = () => {
-ws.send(JSON.stringify({authorize:token}));
-};
-
-ws.onmessage = (msg)=>{
-const data = JSON.parse(msg.data);
-
-if(data.error){
-alert("Session expired. Please login again.");
-logout();
+    if(!activeToken){ alert("Please login first for this account."); return; }
+    if(ws) ws.close();
+    connectWS();
 }
 
-if(data.msg_type==="authorize"){
-document.getElementById("loginid").innerText=data.authorize.loginid;
-
-const isDemo=data.authorize.loginid.startsWith("VRTC");
-document.getElementById("accountType").innerText=isDemo?"Demo Account":"Real Account";
-
-ws.send(JSON.stringify({balance:1,subscribe:1}));
+// WebSocket connection
+function connectWS(){
+    ws = new WebSocket("wss://ws.derivws.com/websockets/v3?app_id="+APP_ID);
+    ws.onopen = ()=> ws.send(JSON.stringify({authorize:activeToken}));
+    ws.onmessage = (msg)=>{
+        const data = JSON.parse(msg.data);
+        if(data.error){
+            alert("Authorization failed. Please login again.");
+            localStorage.clear();
+            window.location.href="index.html";
+        }
+        if(data.msg_type==="authorize"){
+            currentLoginId = data.authorize.loginid;
+            document.getElementById("loginid").innerText = currentLoginId;
+            const isDemo = currentLoginId.startsWith("VRTC");
+            document.getElementById("accountType").innerText = isDemo?"Demo Account":"Real Account";
+            ws.send(JSON.stringify({balance:1,subscribe:1}));
+        }
+        if(data.msg_type==="balance"){
+            document.getElementById("balance").innerText = data.balance.balance+" "+data.balance.currency;
+        }
+        if(data.msg_type==="proposal"){
+            ws.send(JSON.stringify({
+                buy:data.proposal.id,
+                price:parseFloat(document.getElementById("stake").value)
+            }));
+        }
+        if(data.msg_type==="buy"){
+            logTrade("Trade Opened",data.buy.contract_id);
+            ws.send(JSON.stringify({proposal_open_contract:1,contract_id:data.buy.contract_id,subscribe:1}));
+        }
+        if(data.msg_type==="proposal_open_contract"){
+            if(data.proposal_open_contract.is_sold){
+                logTrade("Closed",data.proposal_open_contract.profit);
+            }
+        }
+    };
 }
 
-if(data.msg_type==="balance"){
-document.getElementById("balance").innerText=
-data.balance.balance+" "+data.balance.currency;
+// Run bot manually
+function runBot(){
+    const stake = parseFloat(document.getElementById("stake").value);
+    const prediction = document.getElementById("prediction").value;
+    if(!activeToken){ alert("Please select an account."); return; }
+
+    ws.send(JSON.stringify({
+        proposal:1,
+        amount:stake,
+        basis:"stake",
+        contract_type:"DIGITOVER",
+        currency:"USD",
+        symbol:"R_100",
+        duration:1,
+        duration_unit:"t",
+        barrier:prediction
+    }));
 }
 
-if(data.msg_type==="proposal"){
-ws.send(JSON.stringify({
-buy:data.proposal.id,
-price:parseFloat(document.getElementById("stake").value)
-}));
+// Log trades
+function logTrade(type,value){
+    const log = document.getElementById("log");
+    const div = document.createElement("div");
+    div.className="log-item";
+    div.innerHTML=`<span>${type}</span><span>${value}</span>`;
+    if(log.innerText==="No trades yet.") log.innerHTML="";
+    log.prepend(div);
 }
 
-if(data.msg_type==="buy"){
-log("Trade Opened",data.buy.contract_id);
-ws.send(JSON.stringify({
-proposal_open_contract:1,
-contract_id:data.buy.contract_id,
-subscribe:1
-}));
-}
-
-if(data.msg_type==="proposal_open_contract"){
-if(data.proposal_open_contract.is_sold){
-log("Closed",data.proposal_open_contract.profit);
-}
-}
-
-};
-
-}
-
-function runTrade(){
-ws.send(JSON.stringify({
-proposal:1,
-amount:parseFloat(document.getElementById("stake").value),
-basis:"stake",
-contract_type:"DIGITOVER",
-currency:"USD",
-symbol:"R_100",
-duration:1,
-duration_unit:"t",
-barrier:document.getElementById("prediction").value
-}));
-}
-
+// Logout
 function logout(){
-localStorage.removeItem("deriv_token");
-window.location.href="index.html";
+    localStorage.clear();
+    window.location.href="index.html";
 }
 
-function log(type,value){
-const logDiv=document.getElementById("log");
-if(logDiv.innerText==="No trades yet.") logDiv.innerHTML="";
-const div=document.createElement("div");
-div.className="log-item";
-div.innerHTML=`<span>${type}</span><span>${value}</span>`;
-logDiv.prepend(div);
+// On load, default to Demo if exists, else Real
+window.onload = ()=>{
+    if(localStorage.getItem("deriv_demo_token")) document.getElementById("accountSelector").value="demo";
+    else if(localStorage.getItem("deriv_real_token")) document.getElementById("accountSelector").value="real";
+    switchAccount();
 }
-
 </script>
 
 </body>
